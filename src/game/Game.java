@@ -10,9 +10,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 import javax.swing.Timer;
 
@@ -31,14 +28,13 @@ public class Game extends Applet implements Runnable {
 	Coin[] coins = new Coin[coinCount];
 	ArrayList<BallSmokeParticle> ballSmokeParticles;
 	ArrayList<BallSmokeParticle> underlineParticles;
-	// Keys which are currently pressed during gameplay
-	private final Set<Integer> playingPressed = new HashSet<Integer>();
 	Dimension winSize;
 	
-	Image dbimage, logo;
+	Image dbimage;
 	SoundManager backingTrack;
 	long initialTime;
 	
+	MenuSys menuSys;
 	boolean rPlayerTurn;
 	boolean shotMade;
 	//Another shot for hitting selected coin between other coins (without contact)
@@ -70,12 +66,12 @@ public class Game extends Applet implements Runnable {
 	int state;
 	int prevState;
 	static final int PLAYING = 0;
-	static final int WAITING = 1;
-	static final int MAINMENU = 2;
-	static final int MODEMENU = 3;
-	static final int OPTMENU = 4;
-	static final int GAMEINFO = 5;
-	static final int CHECK = 6;
+//	static final int WAITING = 1;
+	static final int MENU = 1;
+//	static final int MODEMENU = 3;
+//	static final int OPTMENU = 4;
+//	static final int GAMEINFO = 5;
+//	static final int CHECK = 6;
 
 	public static final int coinCount = 3;
 	public static final int goalWidthMed = 500;
@@ -99,8 +95,8 @@ public class Game extends Applet implements Runnable {
 	 */
 	public void init() {
 		initialTime = System.currentTimeMillis();
-		state = MAINMENU;
-		prevState = MAINMENU;
+		state = MENU;
+		prevState = MENU;
 
 		// Default settings
 		rPlayerTurn = true;
@@ -124,7 +120,7 @@ public class Game extends Applet implements Runnable {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setSize(dim.width - 10, dim.height - 110);
 		Dimension d = winSize = this.getSize();
-		logo = this.getImage(getDocumentBase(), "pong_logo.gif");
+		menuSys = new MenuSys(this, winSize);
 
 		coins[0] = new Coin(new Vector2D(d.width/2+80, d.height/2), Color.YELLOW);
 		coins[1] = new Coin(new Vector2D(d.width/2, d.height/2+40), Color.YELLOW);
@@ -184,7 +180,7 @@ public class Game extends Applet implements Runnable {
 	}
 
 	
-	private void startNewGame()
+	public void startNewGame()
 	{
 		//Set starting position
 		float n = (rPlayerTurn) ? 80 : -80;
@@ -224,7 +220,7 @@ public class Game extends Applet implements Runnable {
 	public void step() {
 		
 		// Background music control
-		if(state == PLAYING || state == WAITING )
+		if(state == PLAYING)
 			backingTrack.play();
 		else
 			backingTrack.stopLoop();
@@ -376,21 +372,14 @@ public class Game extends Applet implements Runnable {
 		
 		if (state != PLAYING) {
 			//recalibratePaddles();
-			if (state != WAITING) {
+//			if (state != WAITING) {
 				titleUnderlineParticles(500);
-				if(state != CHECK)
-					deathMatchWinner = false;
-			}
+//				if(state != CHECK)
+//					deathMatchWinner = false;
+//			}
 		}
 		
-		// Ensure paddles are not moving after end of a round
-		if (state == WAITING) {
-			playingPressed.clear();
-			
-			
-			// Reset ranges if paddle shrinks during a death match
-			
-		}
+
 	}
 	
 	/*
@@ -497,42 +486,42 @@ public class Game extends Applet implements Runnable {
 	 */
 	public void drawBanner(Graphics g) {
 		// Change colours later
-		g.setFont(Fonts.largefont);
-		FontMetrics fm = g.getFontMetrics();
-		g.setColor(Color.YELLOW);
-		g.drawImage(logo, (winSize.width-logo.getWidth(null))/2, 50, null);
-		g.setFont(Fonts.scorefont);
-		fm = g.getFontMetrics();
-		centerString(g, fm, "by Ben Homer", 160);
-		g.setFont(Fonts.smallfont);
-		fm = g.getFontMetrics();
-
-		if(state == GAMEINFO)
-			openGameInfo(g, fm, 270);
-		else if(state == CHECK)
-			openCheck(g, fm);
-		else {
-			centerString(g, fm, "Type the number of the menu option you want:", 270);
-
-			if (state == MAINMENU)
-				openMainMenu(g, fm, 300);
-
-			else if (state == OPTMENU)
-				openOptionsMenu(g, fm, 300);
-
-			else if (state == MODEMENU)
-				openModeMenu(g, fm, 300);
-		}
+//		g.setFont(Fonts.largefont);
+//		FontMetrics fm = g.getFontMetrics();
+//		g.setColor(Color.YELLOW);
+//		g.drawImage(logo, (winSize.width-logo.getWidth(null))/2, 50, null);
+//		g.setFont(Fonts.scorefont);
+//		fm = g.getFontMetrics();
+//		centerString(g, fm, "by Ben Homer", 160);
+//		g.setFont(Fonts.smallfont);
+//		fm = g.getFontMetrics();
+//
+//		if(state == GAMEINFO)
+//			openGameInfo(g, fm, 270);
+//		else if(state == CHECK)
+//			openCheck(g, fm);
+//		else {
+//			centerString(g, fm, "Type the number of the menu option you want:", 270);
+//
+//			if (state == MAINMENU)
+//				openMainMenu(g, fm, 300);
+//
+//			else if (state == OPTMENU)
+//				openOptionsMenu(g, fm, 300);
+//
+//			else if (state == MODEMENU)
+//				openModeMenu(g, fm, 300);
+//		}
 	}
 	
 	/* 
 	 * Draws game main menu 
 	 */
 	public void openMainMenu(Graphics g, FontMetrics fm, int s) {
-		centerString(g, fm, "1. Single Player", s);
-		centerString(g, fm, "2. Two Player", s=space(s));
-		centerString(g, fm, "3. Options", s=space(s));
-		centerString(g, fm, "4. Quit", space(s));
+//		centerString(g, fm, "1. Single Player", s);
+//		centerString(g, fm, "2. Two Player", s=space(s));
+//		centerString(g, fm, "3. Options", s=space(s));
+//		centerString(g, fm, "4. Quit", space(s));
 	}
 	
 	/*
@@ -586,43 +575,43 @@ public class Game extends Applet implements Runnable {
 	 * Draws game mode menu
 	 */
 	public void openModeMenu(Graphics g, FontMetrics fm, int s) {
-		centerString(g, fm, "1. Classic", s);
-		centerString(g, fm, "2. Death Match", s=space(s));
-		centerString(g, fm, "3. Back", space(s));
+//		centerString(g, fm, "1. Classic", s);
+//		centerString(g, fm, "2. Death Match", s=space(s));
+//		centerString(g, fm, "3. Back", space(s));
 	}
 	
 	/*
 	 * Draws game options menu
 	 */
 	public void openOptionsMenu(Graphics g, FontMetrics fm, int l) {
-		String s, c, d, p, t, o;
-		if (sound) s = "ON";
-		else s = "OFF";
-		
-		if (mouse) c = "MOUSE";
-		else c = "KEYS";
-		
-		switch(difficulty) {
-		case 0: d = "EASY"; break;
-		case 2: d = "HARD"; break;
-		default: d = "MEDIUM";
-		}
-		
-		if(Player.getWrap()) p = "ON";
-		else p = "OFF";
-
-		if(ballTrail) t = "ON";
-		else t = "OFF";
-
-		
-		centerString(g, fm, "1. Game Info", l);
-		centerString(g, fm, "2. Sound  " + s , l=space(l));
-		centerString(g, fm, "3. Controller  " + c , l=space(l));
-		centerString(g, fm, "4. Difficulty  " + d , l=space(l));
-		centerString(g, fm, "5. Paddle Wrapping  " + p , l=space(l));
-		centerString(g, fm, "6. Ball Trail  " + t , l=space(l));
-		centerString(g, fm, "7. Game Orientation  " , l=space(l));
-		centerString(g, fm, "8. Back", space(l));
+//		String s, c, d, p, t, o;
+//		if (sound) s = "ON";
+//		else s = "OFF";
+//		
+//		if (mouse) c = "MOUSE";
+//		else c = "KEYS";
+//		
+//		switch(difficulty) {
+//		case 0: d = "EASY"; break;
+//		case 2: d = "HARD"; break;
+//		default: d = "MEDIUM";
+//		}
+//		
+//		if(Player.getWrap()) p = "ON";
+//		else p = "OFF";
+//
+//		if(ballTrail) t = "ON";
+//		else t = "OFF";
+//
+//		
+//		centerString(g, fm, "1. Game Info", l);
+//		centerString(g, fm, "2. Sound  " + s , l=space(l));
+//		centerString(g, fm, "3. Controller  " + c , l=space(l));
+//		centerString(g, fm, "4. Difficulty  " + d , l=space(l));
+//		centerString(g, fm, "5. Paddle Wrapping  " + p , l=space(l));
+//		centerString(g, fm, "6. Ball Trail  " + t , l=space(l));
+//		centerString(g, fm, "7. Game Orientation  " , l=space(l));
+//		centerString(g, fm, "8. Back", space(l));
 	}
 	
 	/*
@@ -630,28 +619,28 @@ public class Game extends Applet implements Runnable {
 	 */
 	public void openGameInfo(Graphics g, FontMetrics fm, int s) {
 		
-		// Paragraph about game, background info, modes and controls
-		centerString(g, fm, "An emulation of an old classic with a few extras", s);
-		centerString(g, fm, "Go to the options menu to adjust game settings", s=space(s));
-		centerString(g, fm, "Please send any questions or comments to bensblogx@gmail.com", s=space(s));
-		centerString(g, fm, "Controls for horiontal play:", s=space(s)+20);
-		centerString(g, fm, "Right player: LEFT/RIGHT", s=space(s));
-		centerString(g, fm, "Left player: A/S", s=space(s));
-		centerString(g, fm, "Controls for vertical play:", s=space(s)+20);
-		centerString(g, fm, "Right player: UP/DOWN", s=space(s));
-		centerString(g, fm, "Left player: A/Z", s=space(s));
-		centerString(g, fm, "Press P during play to pause the game", s=space(s)+20);
-		centerString(g, fm, "Press BACKSPACE at any time for game stats", s=space(s)+20);
-		
-		centerString(g, fm, "Press ENTER to go back", s=space(s)+20);
+//		// Paragraph about game, background info, modes and controls
+//		centerString(g, fm, "An emulation of an old classic with a few extras", s);
+//		centerString(g, fm, "Go to the options menu to adjust game settings", s=space(s));
+//		centerString(g, fm, "Please send any questions or comments to bensblogx@gmail.com", s=space(s));
+//		centerString(g, fm, "Controls for horiontal play:", s=space(s)+20);
+//		centerString(g, fm, "Right player: LEFT/RIGHT", s=space(s));
+//		centerString(g, fm, "Left player: A/S", s=space(s));
+//		centerString(g, fm, "Controls for vertical play:", s=space(s)+20);
+//		centerString(g, fm, "Right player: UP/DOWN", s=space(s));
+//		centerString(g, fm, "Left player: A/Z", s=space(s));
+//		centerString(g, fm, "Press P during play to pause the game", s=space(s)+20);
+//		centerString(g, fm, "Press BACKSPACE at any time for game stats", s=space(s)+20);
+//		
+//		centerString(g, fm, "Press ENTER to go back", s=space(s)+20);
 	}
 
 	/*
 	 * Draws checker screen (checks if user want to exit)
 	 */
 	public void openCheck(Graphics g, FontMetrics fm) {
-		centerString(g, fm, "Are you sure?", 270);
-		centerString(g, fm, "Y/N", 320);
+//		centerString(g, fm, "Are you sure?", 270);
+//		centerString(g, fm, "Y/N", 320);
 	}
 	
 	/*
@@ -712,14 +701,9 @@ public class Game extends Applet implements Runnable {
 		g.setColor(getBackground());
 		g.fillRect(0, 0, winSize.width, winSize.height);
 		g.setColor(getForeground());
+		
 		if (!coins[0].inPlay) {
-
-			// Display current game scores and wait for mouse click to continue next round (also checks for winner in a death match)
-			if (state == WAITING)
-				displayScores(g);
-			// If game game has just begun display start banner
-			else
-				drawBanner(g);
+			menuSys.draw(g);
 		}
 
 		// Re-draw game screen
@@ -803,7 +787,7 @@ public class Game extends Applet implements Runnable {
 		if (showStats)
 			displayStats(g, 150);
 
-		if (state != PLAYING && state != WAITING) {
+		if (state != PLAYING) {
 			for (int i = 0; i < underlineParticles.size(); i++)
 			{
 				BallSmokeParticle particle = underlineParticles.get(i);
@@ -842,10 +826,6 @@ public class Game extends Applet implements Runnable {
 		public void mouseMoved(MouseEvent e) {
 			switch(state) {
 			case PLAYING:
-//				if (orientation)
-//					rplayer.setTarget(e.getY());
-//				else
-//					rplayer.setTarget(e.getX());
 				break;
 			}
 		}
@@ -882,17 +862,6 @@ public class Game extends Applet implements Runnable {
 					{
 						coins[i].setPowerLineDrawn(true, new Vector2D(e.getX(), e.getY()));
 					}
-				}
-				break;
-			case WAITING:
-				if (deathMatchWinner)
-					state = MAINMENU;
-				else {
-					for (int i = 0; i < coinCount; i++)
-					{
-						coins[i].startPlay();
-					}
-					state = PLAYING;
 				}
 				break;
 			}
@@ -939,212 +908,7 @@ public class Game extends Applet implements Runnable {
 					else { coins[0].flash(); paused = true; engine.suspend(); }
 				}
 				
-				playingPressed.add(key);
-				
-				if (playingPressed.size() > 0)
-				{
-					Iterator<Integer> it = playingPressed.iterator();
-					while(it.hasNext())
-					{
-						int currKey = it.next();
-
-//						if (orientation) {
-
-//							if (currKey == KeyEvent.VK_DOWN) 
-//								rplayer.down = true;
-//							else if (currKey == KeyEvent.VK_UP)
-//								rplayer.up = true;
-//
-//							// If in single player computer uses mouseMove() therefore no checks for (numPlayers == 2) required
-//							if (currKey == KeyEvent.VK_Z)
-//								lplayer.down = true;
-//							else if (currKey == KeyEvent.VK_A)
-//								lplayer.up = true;
-
-//						}
-//						else {
-//							if (currKey == KeyEvent.VK_RIGHT)
-//								rplayer.down = true;
-//							else if (currKey == KeyEvent.VK_LEFT)
-//								rplayer.up = true;
-//
-//							// If in single player computer uses mouseMove() therefore no checks for (numPlayers == 2) required
-//							if (currKey == KeyEvent.VK_S)
-//								lplayer.down = true;
-//							else if (currKey == KeyEvent.VK_A)
-//								lplayer.up = true;
-//						}
-					}
-//					rplayer.update();
-//					lplayer.update();
-				}
-				break;
-
-			case WAITING:
-				switch(key) {
-					case KeyEvent.VK_UP:
-						SoundManager.MENUCLICK.play();
-						if (deathMatchWinner)
-							state = MAINMENU;
-						else {
-							startNewGame();
-						}
-						break;
-					case Event.ESCAPE:
-						SoundManager.MENUCLICK.play();
-						prevState = WAITING;
-						state = CHECK;
-						break;
-				}
-			break;
-			
-			case MAINMENU:
-				switch(key) {
-					case '1':
-						numPlayers = 1;
-						SoundManager.MENUCLICK.play();
-						state = MODEMENU;
-						break;
-					case '2':
-						numPlayers = 2;
-						SoundManager.MENUCLICK.play();
-						// Must use keys to control if 2 players
-						mouse = false; 
-						state = MODEMENU;
-						break;
-					case '3':
-						state = OPTMENU;
-						SoundManager.MENUCLICK.play();
-						break;
-					case '4': case Event.ESCAPE:
-						SoundManager.MENUCLICK.play();
-						prevState = MAINMENU;
-						state = CHECK;
-						break;
-				}
-			break;
-			
-			case MODEMENU:
-				switch(key) {
-					case '1':
-						// Classic game
-						SoundManager.MENUCLICK.play();
-						backingTrack = SoundManager.selectRandomBackgroundTrack();
-						deathMatch = false;
-						state = WAITING;
-						break;
-					case '2':
-						// Death match game
-						SoundManager.MENUCLICK.play();
-						backingTrack = SoundManager.selectRandomBackgroundTrack();
-						deathMatch = true;
-						state = WAITING;
-						break;
-					case '3':
-						SoundManager.MENUCLICK.play();
-						state = MAINMENU;
-						break;
-				}
-			break;
-
-			case OPTMENU:
-				switch(key) {
-					case '1':
-						SoundManager.MENUCLICK.play();
-						// Show game info text
-						state = GAMEINFO;
-						break;
-					case '2':
-						SoundManager.unmute();
-						SoundManager.MENUCLICK.play();
-						// Toggle sound ON/OFF
-						if (sound) {
-							sound = false;
-							SoundManager.mute();
-						}
-						else {
-							sound = true;
-							SoundManager.unmute();
-						}
-						break;
-					case '3':
-						SoundManager.MENUCLICK.play();
-						// Toggle controller MOUSE/KEYS
-						if (mouse) {
-							mouse = false;
-						}
-						else {
-							mouse = true;
-						}
-						break;
-					case '4':
-						SoundManager.MENUCLICK.play();
-						// Toggle difficulty EASY/MEDIUM/HARD
-						difficulty = (difficulty+1)%3;
-
-						switch(difficulty) {
-						case 0: pause = easyPause; break;
-						case 1: pause = medPause; break;
-						case 2: pause = hardPause; break;
-						}
-						
-						break;
-					case '5':
-						SoundManager.MENUCLICK.play();
-						// Toggle paddle wrapping ON/OFF
-						if (Player.getWrap()) {
-							Player.setWrap(false);
-						}
-						else {
-							Player.setWrap(true);
-						}
-						break;
-					case '6':
-						SoundManager.MENUCLICK.play();
-						// Toggle ball trail ON/OFF
-						if (ballTrail)
-							ballTrail = false;
-						else
-							ballTrail = true;
-						break;
-					case '7':
-						SoundManager.MENUCLICK.play();
-						// Toggle game orientation HORIZ/VERT
-						
-						break;
-					case '8':
-						SoundManager.MENUCLICK.play();
-						state = MAINMENU;
-						break;
-				}
-			break;
-			
-			case GAMEINFO:
-				switch(key) {
-					case Event.ENTER:
-						SoundManager.MENUCLICK.play();
-						state = OPTMENU;
-						break;
-				}
-			break;
-			
-			case CHECK:
-				switch(key) {
-					case 'Y': case 'y':
-						SoundManager.MENUCLICK.play();
-						if(prevState == WAITING) {
-							
-							state = MAINMENU;
-						}
-						else
-							System.exit(0);
-						break;
-					case 'N': case 'n':
-						SoundManager.MENUCLICK.play();
-						state = prevState;
-						break;
-				}
-			break;
+	
 			}
 		}
 		
@@ -1154,29 +918,6 @@ public class Game extends Applet implements Runnable {
 		int key = e.getKeyCode();
 		switch(state) {
 		case PLAYING:
-			playingPressed.remove(key);
-//			if (orientation) {
-//				if (key == KeyEvent.VK_DOWN)
-//					rplayer.down = false;
-//				if (key == KeyEvent.VK_UP)
-//					rplayer.up = false;
-//				if (key == KeyEvent.VK_Z)
-//					lplayer.down = false;
-//				if (key == KeyEvent.VK_A)
-//					lplayer.up = false; 
-//			}
-//			else {
-//				if (key == KeyEvent.VK_RIGHT) 
-//					rplayer.down = false;
-//				if (key == KeyEvent.VK_LEFT)
-//					rplayer.up = false;
-//				if (key == KeyEvent.VK_A)
-//					lplayer.down = false;
-//				if (key == KeyEvent.VK_S)
-//					lplayer.up = false; 
-//			}
-//			rplayer.update();
-//			lplayer.update();
 		}
 	}
 	};
