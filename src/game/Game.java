@@ -16,6 +16,7 @@ import java.util.Set;
 
 import javax.swing.Timer;
 
+import utils.Fonts;
 import utils.Vector2D;
 
 
@@ -33,7 +34,7 @@ public class Game extends Applet implements Runnable {
 	// Keys which are currently pressed during gameplay
 	private final Set<Integer> playingPressed = new HashSet<Integer>();
 	Dimension winSize;
-	Font scorefont, tinyfont, smallfont, largefont;
+	
 	Image dbimage, logo;
 	SoundManager backingTrack;
 	long initialTime;
@@ -157,14 +158,13 @@ public class Game extends Applet implements Runnable {
 		
 		ballSmokeParticles = new ArrayList<BallSmokeParticle>();
 		underlineParticles = new ArrayList<BallSmokeParticle>();
-		scorefont = new Font("Digital Dream", Font.BOLD, 30);
-		smallfont = new Font("Atomic Clock Radio", Font.BOLD, 16);
-		tinyfont = new Font("Arial", Font.BOLD, 10);
-		largefont = new Font("Digital Dream", Font.BOLD, 48);
+
 		
 		dbimage = createImage(d.width, d.height);
 		SoundManager.init();
 		backingTrack = SoundManager.selectRandomBackgroundTrack();
+		Fonts.initFonts();
+		
 		// add key/mouse listeners
 		this.addKeyListener(keyListener);
 		//this.addKeyListener(leftListener);
@@ -414,7 +414,7 @@ public class Game extends Applet implements Runnable {
 	 * Displays game statistics
 	 */
 	public void displayStats(Graphics g, int s) {
-		g.setFont(tinyfont);
+		g.setFont(Fonts.tinyfont);
 		g.setColor(Color.GREEN);
 		FontMetrics fm = g.getFontMetrics();
 
@@ -497,14 +497,14 @@ public class Game extends Applet implements Runnable {
 	 */
 	public void drawBanner(Graphics g) {
 		// Change colours later
-		g.setFont(largefont);
+		g.setFont(Fonts.largefont);
 		FontMetrics fm = g.getFontMetrics();
 		g.setColor(Color.YELLOW);
 		g.drawImage(logo, (winSize.width-logo.getWidth(null))/2, 50, null);
-		g.setFont(scorefont);
+		g.setFont(Fonts.scorefont);
 		fm = g.getFontMetrics();
 		centerString(g, fm, "by Ben Homer", 160);
-		g.setFont(smallfont);
+		g.setFont(Fonts.smallfont);
 		fm = g.getFontMetrics();
 
 		if(state == GAMEINFO)
@@ -658,14 +658,14 @@ public class Game extends Applet implements Runnable {
 	 * Displays the scores of both players and also checks for a winner in a death match
 	 */
 	public void displayScores(Graphics g) {
-		g.setFont(scorefont);
+		g.setFont(Fonts.scorefont);
 		g.setColor(Color.YELLOW);
 		FontMetrics fm = g.getFontMetrics();
 		String rscore = Integer.toString(scores[1]);
 		String lscore = Integer.toString(scores[0]);
 		centerString(g, fm, "Score" , 100);
 		centerString(g, fm, lscore + "    " + rscore , 150);
-		g.setFont(smallfont);
+		g.setFont(Fonts.smallfont);
 		fm = g.getFontMetrics();
 //		if (rplayer.getScore() == 0 && lplayer.getScore() == 0) {
 //			if (deathMatch)
@@ -695,7 +695,7 @@ public class Game extends Applet implements Runnable {
 	}
 	
 	public void drawIngameScores(Graphics g) {
-		g.setFont(scorefont);
+		g.setFont(Fonts.scorefont);
 		g.setColor(Color.YELLOW);
 		FontMetrics fm = g.getFontMetrics();
 		String rscore = Integer.toString(scores[1]);
