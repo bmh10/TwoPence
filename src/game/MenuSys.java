@@ -97,13 +97,13 @@ public class MenuSys {
 	 */
 	private void drawMenuHeader(Graphics g)
 	{
-		g.setFont(largefont);
-		FontMetrics fm = g.getFontMetrics();
-		g.setColor(Color.YELLOW);
-		g.drawImage(logo, (winSize.width-logo.getWidth(null))/2, 50, null);
-		g.setFont(scorefont);
-		fm = g.getFontMetrics();
-		centerString(g, fm, "by Ben Homer", 160);
+//		g.setFont(largefont);
+//		FontMetrics fm = g.getFontMetrics();
+//		g.setColor(Color.YELLOW);
+//		g.drawImage(logo, (winSize.width-logo.getWidth(null))/2, 50, null);
+//		g.setFont(scorefont);
+//		fm = g.getFontMetrics();
+//		centerString(g, fm, "by Ben Homer", 160);
 	}
 
 
