@@ -2,13 +2,9 @@ package game;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Event;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -31,22 +27,44 @@ public class MenuSys {
 	
 	private final int NUM_IMAGES = 10;
 	private final int NUM_BOXES  = 4;
-	private final int SP = 20;
 	
 	Game game;
 	Menu currMenu;
 	Dimension winSize;
-	Box[] boxs;
+	int timer;
+	
+	Box[] boxs, subBoxs;
+	Vector2D boxStartPos, subBoxStartPos;
+	Vector2D[] boxStartSize;
+	Vector2D subBoxStartSize;
+	
 	Image[] imgs;
 	String[] imgFiles;
-	//Add another dimension for different languages
-	String[][] txt =  { 
+	
+	//Assign array to this depending on language
+	String[][] txt, txtOpt;
+	
+	String[][] english =  { 
 							{"NEW GAME", "FIND OPPONENT", "OPTIONS", "QUIT"},  //Main menu
 							{"", "SINGLE PLAYER", "LOCAL MULTIPLAYER", "BACK"},  //New game
 							{"", "", "", "BACK"},   //Find opponent
 							{"SOUND", "LANGUAGE", "", "BACK"}, //Options
 							{"QUIT?", "YES", "NO", ""}, //Check
-					  };
+					  	  };
+	
+	//Options submenu text
+	String[][] englishOpt =  { 
+								{"ON", "OFF", "", ""},  //Sound
+								{"ENGLISH", "FRENCH", "GERMAN", ""},  //Language
+				  	  		 };
+					  
+	String[][] french =  { 
+							{"NOUVEAU JEU", "TROUVER ADVERSAIRE", "OPTIONS DE", "QUITTER"},  //Main menu
+							{"", "SEUL JOUEUR", "MULTIJOUEUR EN LOCAL", "ARRIËRE"},  //New game
+							{"", "", "", "ARRIËRE"},   //Find opponent
+							{"SON", "LANGUE", "", "ARRIËRE"}, //Options
+							{"QUITTER?", "OUI", "NO", ""}, //Check
+					     };
 	
 	//Defines menu flow
 	Menu[][] nxtMenu =  { 
@@ -56,13 +74,17 @@ public class MenuSys {
 							{Menu.NONE, Menu.NONE, Menu.NONE, Menu.MAIN}, //Options
 							{Menu.NONE, Menu.NONE, Menu.MAIN, Menu.NONE}, //Check
 					    };
-	
+					 
 	
 	public	MenuSys(Game game, Dimension winSize)
 	{
 		this.game = game;
 		this.currMenu = Menu.MAIN;
 		this.winSize = winSize;
+		this.timer = 0;
+		//TODO: Get country connected on and set language (default to English)
+		this.txt = english;
+		this.txtOpt = englishOpt;
 		loadGraphics();
 		setupBoxes();
 		
@@ -100,15 +122,41 @@ public class MenuSys {
 	private void setupBoxes()
 	{
 		this.boxs = new Box[NUM_BOXES];
+		this.subBoxs = new Box[NUM_BOXES];
+		boxStartPos = new Vector2D((winSize.width-Box.size)/2,   (winSize.height-Box.size)/2);
+		boxStartSize = new Vector2D[2];
+		boxStartSize[0] = new Vector2D(10, Box.size);
+		boxStartSize[1] = new Vector2D(Box.size, 10);
+		
+		//TODO: Change dimensions
+		subBoxStartPos = new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2);
+		subBoxStartSize = new Vector2D(100, 50);
+		
 		for (int i = 0; i < NUM_BOXES; i++)
 		{
 			boxs[i] = new Box();
+			if (i==0 || i ==3)
+				boxs[i].setPos(boxStartPos).setSize(boxStartSize[0]);
+			else
+				boxs[i].setPos(boxStartPos).setSize(boxStartSize[1]);
+				
+			subBoxs[i] = new Box();
+			subBoxs[i].setPos(subBoxStartPos).setSize(subBoxStartSize).setFinalSize(Box.subSize, 10);
 		}
 		
-		boxs[0].setPos(new Vector2D((winSize.width-Box.size)/2,   (winSize.height-Box.size*3)/2));
-		boxs[1].setPos(new Vector2D((winSize.width-Box.size*3)/2, (winSize.height-Box.size)/2));
-		boxs[2].setPos(new Vector2D((winSize.width+Box.size)/2,   (winSize.height-Box.size)/2));
-		boxs[3].setPos(new Vector2D((winSize.width-Box.size)/2,   (winSize.height+Box.size)/2));
+		//Set positions to end in after animation
+		boxs[0].setFinalPos(new Vector2D((winSize.width-Box.size)/2,   (winSize.height-Box.size*3)/2));
+		boxs[1].setFinalPos(new Vector2D((winSize.width-Box.size*3)/2, (winSize.height-Box.size)/2));
+		boxs[2].setFinalPos(new Vector2D((winSize.width+Box.size)/2,   (winSize.height-Box.size)/2));
+		boxs[3].setFinalPos(new Vector2D((winSize.width-Box.size)/2,   (winSize.height+Box.size)/2));
+		
+		//TODO: change
+		subBoxs[0].setFinalPos(new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2));
+		subBoxs[1].setFinalPos(new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2+56));
+		subBoxs[2].setFinalPos(new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2+112));
+		subBoxs[3].setFinalPos(new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2+168));
+		
+		//TODO: animate subboxes - at moment just appear when required
 	}
 	
 	private void changeMenu(int i)
@@ -117,10 +165,54 @@ public class MenuSys {
 		if (m!=Menu.NONE)
 		{
 			this.currMenu = m;
+			//Animate boxes
+			for (int n = 0; n < NUM_BOXES; n++)
+			{
+				if (n==0 || n ==3)
+					boxs[n].setPos(boxStartPos).setSize(boxStartSize[0]);
+				else
+					boxs[n].setPos(boxStartPos).setSize(boxStartSize[1]);	
+			}
 		}
 		else
 		{
-			//TODO: put in special cases for things like 'quit' and options(sound, langage etc.) here
+			//TODO: put in special cases for things like 'quit' and options(sound, language etc.) here
+			switch (currMenu)
+			{
+//				case NONE:
+//				case MAIN:
+//				break;
+				case NEW_GAME:
+					switch(i)
+					{
+						case 1:
+							game.startNewGame(); break;
+						case 2:
+							game.startNewGame(); break;
+					}
+				break;
+				case FIND_OPPONENT:
+					switch(i)
+					{
+					}
+				break;
+				case OPTIONS:
+					switch(i)
+					{
+						//Language
+						case 1:
+							
+						break;
+					}
+				break;
+				case CHECK:
+					switch(i)
+					{
+						case 1:
+							System.exit(0); break;
+					}
+				break;
+			}
 			
 		}
 		
@@ -132,16 +224,26 @@ public class MenuSys {
 	 */
 	public void draw(Graphics g)
 	{
+		//TODO: at the moment this is called every frame which is unnecessary
+		//can stop calling when animation finished and mouse is not over a box
 		drawMenuHeader(g);
 		setTextAndDraw(g, currMenu.ordinal());
+		
+		new Box(boxStartPos, "").setColor(Color.DARK_GRAY, Color.BLACK).draw(g);
 	}
 	
 	private void setTextAndDraw(Graphics g, int i)
 	{
+		timer++;
 		g.setFont(Fonts.smallfont);
 		for (int n = 0; n < NUM_BOXES; n++)
 		{
 			boxs[n].setText(txt[i][n]).draw(g);
+			//If box has no text make it invisible
+			boxs[n].setVisible(!boxs[n].hasNoText());
+			
+			//TODO: SubBoxes - change
+			subBoxs[n].setText(txtOpt[0][n]).draw(g);
 		}
 	}
 	
@@ -154,10 +256,10 @@ public class MenuSys {
 		FontMetrics fm = g.getFontMetrics();
 		g.setColor(Color.YELLOW);
 		//Draw logo
-		g.drawImage(imgs[0], (winSize.width-imgs[0].getWidth(null))/2, 50, null);
-		g.setFont(Fonts.scorefont);
+		g.drawImage(imgs[0], (winSize.width-imgs[0].getWidth(null))/2, 30, null);
+		g.setFont(Fonts.smallfont);
 		fm = g.getFontMetrics();
-		centerString(g, fm, "by Ben Homer", 160);
+		centerString(g, fm, "by Ben Homer", winSize.height-50);
 	}
 	
 	/*

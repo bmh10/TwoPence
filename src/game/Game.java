@@ -527,24 +527,26 @@ public class Game extends Applet implements Runnable {
 	 * Creates particle space used to underline the main title
 	 */
 	public void titleUnderlineParticles(int numParticles) {
+	
+	//TODO: Turned particles off for now, do something with them later
 		
-		// Keep number of particles constant
-		if(underlineParticles.size()>numParticles)
-			underlineParticles.remove(0);
-
-		// Make particle offset random
-		int areax = 300;
-		int areay = 50;
-		int randx = (int) (Math.random()*areax);
-		int randy = (int) (Math.random()*areay);
-
-		// Make the particles stay within specified area 
-		Point p = new Point((winSize.width - areax)/2 + randx, 230 - randy);
-		BallSmokeParticle b = new BallSmokeParticle(p);
-		underlineParticles.add(b);
-		
-		for(int i = 0; i<numParticles/2; i++)
-			underlineParticles.get(i).setColor(Color.YELLOW);
+//		// Keep number of particles constant
+//		if(underlineParticles.size()>numParticles)
+//			underlineParticles.remove(0);
+//
+//		// Make particle offset random
+//		int areax = 300;
+//		int areay = 50;
+//		int randx = (int) (Math.random()*areax);
+//		int randy = (int) (Math.random()*areay);
+//
+//		// Make the particles stay within specified area 
+//		Point p = new Point((winSize.width - areax)/2 + randx, 230 - randy);
+//		BallSmokeParticle b = new BallSmokeParticle(p);
+//		underlineParticles.add(b);
+//		
+//		for(int i = 0; i<numParticles/2; i++)
+//			underlineParticles.get(i).setColor(Color.YELLOW);
 	}
 	
 	/*

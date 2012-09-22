@@ -296,11 +296,11 @@ public class Coin {
 	    float yd = (pos.y - coin.getPos().y);
 
 	    float sumRadius = getRadius() + coin.getRadius();
-	    float sqrRadius = sumRadius * sumRadius;
+	    float sqrSumRadius = sumRadius * sumRadius;
 
 	    float distSqr = (xd * xd) + (yd * yd);
 
-	    if (distSqr <= sqrRadius)
+	    if (distSqr <= sqrSumRadius)
 	    {
 	        return true;
 	    }
