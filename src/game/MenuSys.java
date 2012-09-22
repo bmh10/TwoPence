@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import utils.Fonts;
+import utils.Vector2D;
 
 public class MenuSys {
 	
@@ -25,14 +26,24 @@ public class MenuSys {
 		OPTIONS,
 		CHECK,
 	};
+	
 	private final int NUM_IMAGES = 10;
+	private final int NUM_BOXES  = 4;
 	private final int SP = 20;
 	
 	Game game;
 	Menu currMenu;
 	Dimension winSize;
+	Box[] boxs;
 	Image[] imgs;
 	String[] imgFiles;
+	//Add another dimension for different languages
+	String[][] txt =  { {"NEW GAME", "FIND OPPONENT", "OPTIONS", "QUIT"},  //Main menu
+						{"", "SINGLE PLAYER", "LOCAL MULTIPLAYER", "BACK"},  //New game
+						{"", "", "", "BACK"},   //Find opponent
+						{"SOUND", "LANGUAGE", "", "BACK"}, //Option
+						{"QUIT?", "YES", "NO", ""}, //CHECK
+					  };
 	
 	
 	public	MenuSys(Game game, Dimension winSize)
@@ -40,17 +51,21 @@ public class MenuSys {
 		this.game = game;
 		this.currMenu = Menu.MAIN;
 		this.winSize = winSize;
-		imgs = new Image[NUM_IMAGES];
-		imgFiles = new String[NUM_IMAGES];
 		loadGraphics();
+		setupBoxes();
 		
 		//Init mouse and key listeners
 		game.addMouseListener(menuClickListener);
 		game.addKeyListener(menuKeyListener);
 	}
 	
+	/*
+	 * Loads grpahics files using file names stored in imgFiles array
+	 */
 	private void loadGraphics()
 	{
+		imgs = new Image[NUM_IMAGES];
+		imgFiles = new String[NUM_IMAGES];
 		setFileNames();
 		for (int i = 0; i < NUM_IMAGES; i++)
 		{
@@ -58,9 +73,30 @@ public class MenuSys {
 		}
 	}
 	
+	/*
+	 * Sets all graphics file names
+	 */
 	private void setFileNames()
 	{
 		imgFiles[0] = "pong_logo.gif";
+		//TODO: Add new graphics here
+	}
+	
+	/*
+	 * Setups up menus boxes in correct positions
+	 */
+	private void setupBoxes()
+	{
+		this.boxs = new Box[NUM_BOXES];
+		for (int i = 0; i < NUM_BOXES; i++)
+		{
+			boxs[i] = new Box();
+		}
+		
+		boxs[0].setPos(new Vector2D((winSize.width-Box.size)/2, (winSize.height-Box.size*3)/2));
+		boxs[1].setPos(new Vector2D((winSize.width-Box.size*3)/2, (winSize.height-Box.size)/2));
+		boxs[2].setPos(new Vector2D((winSize.width+Box.size)/2, (winSize.height-Box.size)/2));
+		boxs[3].setPos(new Vector2D((winSize.width-Box.size)/2, (winSize.height+Box.size)/2));
 	}
 	
 	private void changeMenu(Menu m)
@@ -68,68 +104,22 @@ public class MenuSys {
 		this.currMenu = m;
 	}
 	
+	/*
+	 * Draws correct menu depending on current state
+	 */
 	public void draw(Graphics g)
 	{
 		drawMenuHeader(g);
+		setTextAndDraw(g, currMenu.ordinal());
+	}
+	
+	private void setTextAndDraw(Graphics g, int i)
+	{
 		g.setFont(Fonts.smallfont);
-		
-		switch (currMenu)
+		for (int n = 0; n < NUM_BOXES; n++)
 		{
-		case MAIN:
-			drawMainMenu(g); break;
-		case NEW_GAME:
-			drawNewGameMenu(g); break;
-		case FIND_OPPONENT:
-			drawFindOpponentMenu(g); break;
-		case OPTIONS:
-			drawOptionsMenu(g); break;
-		case CHECK:
-			drawCheckMenu(g); break;
+			boxs[n].setText(txt[i][n]).draw(g);
 		}
-	}
-	
-	private void drawMainMenu(Graphics g)
-	{
-		FontMetrics fm = g.getFontMetrics();
-		int s = 300;
-		centerString(g, fm, "1. NEW GAME", s);
-		centerString(g, fm, "2. FIND OPPONENT", s+=SP);
-		centerString(g, fm, "3. OPTIONS", s+=SP);
-		centerString(g, fm, "4. QUIT", s+=SP);
-	}
-	
-	private void drawNewGameMenu(Graphics g)
-	{
-		FontMetrics fm = g.getFontMetrics();
-		int s = 300;
-		centerString(g, fm, "1. SINGLE PLAYER", s);
-		centerString(g, fm, "2. LOCAL MULTIPLAYER", s+=SP);
-		centerString(g, fm, "3. BACK", s+=SP);
-	}
-	
-	private void drawFindOpponentMenu(Graphics g)
-	{
-		FontMetrics fm = g.getFontMetrics();
-		int s = 300;
-		centerString(g, fm, "3. BACK", s);
-	}
-	
-	private void drawOptionsMenu(Graphics g)
-	{
-		FontMetrics fm = g.getFontMetrics();
-		int s = 300;
-		centerString(g, fm, "1. SOUND", s);
-		centerString(g, fm, "2. WALL BOUNCING", s+=SP);
-		centerString(g, fm, "3. THEME", s+=SP);
-		centerString(g, fm, "4. BACK", s+=SP);
-	}
-	
-	private void drawCheckMenu(Graphics g)
-	{
-		FontMetrics fm = g.getFontMetrics();
-		int s = 300;
-		centerString(g, fm, "Are you sure you want to quit?", s);
-		centerString(g, fm, "Y/N", s+=SP);
 	}
 	
 	/*
