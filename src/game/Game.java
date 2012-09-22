@@ -163,7 +163,6 @@ public class Game extends Applet implements Runnable {
 		
 		// add key/mouse listeners
 		this.addKeyListener(keyListener);
-		//this.addKeyListener(leftListener);
 		this.addMouseMotionListener(mouseMoveListener);
 		this.addMouseListener(mouseClickListener);
 	}
