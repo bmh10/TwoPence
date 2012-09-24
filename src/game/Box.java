@@ -3,6 +3,7 @@ package game;
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
 
 import utils.Vector2D;
@@ -10,7 +11,8 @@ import utils.Vector2D;
 public class Box {
 
 	public static final int size = 150;
-	public static final int subSize = 50;
+	public static final int subSizeW = 150;
+	public static final int subSizeH = 20;
 	public final int ANIM_SPEED = 2;
 	
 	private Rectangle box;
@@ -52,6 +54,11 @@ public class Box {
 		return text;
 	}
 	
+	public Point getPos()
+	{
+		return new Point(box.x, box.y);
+	}
+	
 	public boolean hasNoText()
 	{
 		return text.equals("");
@@ -74,6 +81,13 @@ public class Box {
 	{
 		this.box.width  = (int) s.x;
 		this.box.height = (int) s.y;
+		return this;
+	}
+	
+	public Box setSizeBoth(int w, int h)
+	{
+		this.box.width = finalW = w;
+		this.box.height = finalH = h;
 		return this;
 	}
 	
@@ -118,17 +132,17 @@ public class Box {
 		else if (box.y > finalPos.y) box.y-=ANIM_SPEED;
 		
 		//Adjust dimensions (when in position)
-		if (true) //box.x==finalPos.x && box.y==finalPos.y)
+		if (box.x==finalPos.x && box.y==finalPos.y)
 		{
-			if (box.width < finalW) box.width = finalW;//+=ANIM_SPEED;
-			else if (box.width > finalW) box.width= finalW;//-=ANIM_SPEED;
-			if (box.height < finalH) box.height= finalW;//+=ANIM_SPEED;
-			else if (box.height > finalH) box.height= finalW;//-=ANIM_SPEED;
+			if (box.width < finalW) box.width +=ANIM_SPEED;
+			else if (box.width > finalW) box.width-=ANIM_SPEED;
+			if (box.height < finalH) box.height+=ANIM_SPEED;
+			else if (box.height > finalH) box.height-=ANIM_SPEED;
 			
-			//return (box.width==finalW && box.height==finalH);
+			return (box.width==finalW && box.height==finalH);
 		}
-		return (box.x==finalPos.x && box.y==finalPos.y);
-		//return false;
+		//return (box.x==finalPos.x && box.y==finalPos.y);
+		return false;
 	}
 	
 	
@@ -143,7 +157,7 @@ public class Box {
 			//If animation complete draw text
 			if (animate())
 			{
-				g.drawString(text, box.x+(box.width - fm.stringWidth(text))/2, box.y+(box.height)/2);
+				g.drawString(text, box.x+(box.width - fm.stringWidth(text))/2, box.y+(box.height)/2+5);
 			}
 		}
 		

@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -29,6 +30,11 @@ public class MenuSys {
 		GENERAL,
 		GAMEPLAY,
 		CONNECTIVITY,
+		
+		SOUND,
+		LANGUAGE,
+		ANIMATION,
+		THEME,
 	};
 	
 	private final int NUM_IMAGES = 10;
@@ -40,10 +46,11 @@ public class MenuSys {
 	int timer;
 	boolean subMenuVisible;
 	
+	Box centralBox;
 	Box[] boxs, subBoxs;
 	Vector2D boxStartPos, subBoxStartPos;
-	Vector2D[] boxStartSize;
-	Vector2D subBoxStartSize;
+//	Vector2D[] boxStartSize;
+//	Vector2D subBoxStartSize;
 	
 	Image[] imgs;
 	String[] imgFiles;
@@ -84,6 +91,10 @@ public class MenuSys {
 							{Menu.NONE, Menu.NONE, Menu.NONE, Menu.MAIN},   //Find opponent
 							{Menu.NONE, Menu.NONE, Menu.NONE, Menu.MAIN}, //Options
 							{Menu.NONE, Menu.NONE, Menu.MAIN, Menu.NONE}, //Check
+							{Menu.NONE, Menu.NONE, Menu.MAIN, Menu.NONE}, //None
+							{Menu.SOUND, Menu.LANGUAGE, Menu.ANIMATION, Menu.THEME}, //General
+							{Menu.NONE, Menu.NONE, Menu.MAIN, Menu.NONE}, //Gameplay
+							{Menu.NONE, Menu.NONE, Menu.MAIN, Menu.NONE}, //Connectivity
 					    };
 					 
 	
@@ -137,24 +148,25 @@ public class MenuSys {
 		this.boxs = new Box[NUM_BOXES];
 		this.subBoxs = new Box[NUM_BOXES];
 		boxStartPos = new Vector2D((winSize.width-Box.size)/2,   (winSize.height-Box.size)/2);
-		boxStartSize = new Vector2D[2];
-		boxStartSize[0] = new Vector2D(10, Box.size);
-		boxStartSize[1] = new Vector2D(Box.size, 10);
+//		boxStartSize = new Vector2D[2];
+//		boxStartSize[0] = new Vector2D(10, Box.size);
+//		boxStartSize[1] = new Vector2D(Box.size, 10);
+		
+		this.centralBox = new Box(boxStartPos, "").setColor(Color.DARK_GRAY, Color.BLACK);
 		
 		//TODO: Change dimensions
 		subBoxStartPos = new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2);
-		subBoxStartSize = new Vector2D(100, 50);
+//		subBoxStartSize = new Vector2D(100, 20);
 		
 		for (int i = 0; i < NUM_BOXES; i++)
 		{
 			boxs[i] = new Box();
-			if (i==0 || i ==3)
-				boxs[i].setPos(boxStartPos).setSize(boxStartSize[0]);
-			else
-				boxs[i].setPos(boxStartPos).setSize(boxStartSize[1]);
+//			if (i==0 || i ==3)
+//				boxs[i].setPos(boxStartPos).setSize(boxStartSize[0]);
+//			else
+				boxs[i].setPos(boxStartPos).setSizeBoth(Box.size, Box.size);
 				
-			subBoxs[i] = new Box();
-			subBoxs[i].setPos(subBoxStartPos).setSize(subBoxStartSize).setFinalSize(Box.subSize, 10);
+			subBoxs[i] = new Box().setPos(subBoxStartPos).setSizeBoth(Box.subSizeW, Box.subSizeH);
 		}
 		
 		//Set positions to end in after animation
@@ -164,12 +176,11 @@ public class MenuSys {
 		boxs[3].setFinalPos(new Vector2D((winSize.width-Box.size)/2,   (winSize.height+Box.size)/2));
 		
 		//TODO: change
-		subBoxs[0].setFinalPos(new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2));
-		subBoxs[1].setFinalPos(new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2+56));
-		subBoxs[2].setFinalPos(new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2+112));
-		subBoxs[3].setFinalPos(new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2+168));
+//		subBoxs[0].setFinalPos(new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2));
+//		subBoxs[1].setFinalPos(new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2+40));
+//		subBoxs[2].setFinalPos(new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2+80));
+//		subBoxs[3].setFinalPos(new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2+120));
 		
-		//TODO: animate subboxes - at moment just appear when required
 	}
 	
 	private void changeMenu(int i)
@@ -182,10 +193,10 @@ public class MenuSys {
 			//Animate boxes
 			for (int n = 0; n < NUM_BOXES; n++)
 			{
-				if (n==0 || n ==3)
-					boxs[n].setPos(boxStartPos).setSize(boxStartSize[0]);
-				else
-					boxs[n].setPos(boxStartPos).setSize(boxStartSize[1]);	
+//				if (n==0 || n ==3)
+//					boxs[n].setPos(boxStartPos).setSize(boxStartSize[0]);
+//				else
+					boxs[n].setPos(boxStartPos);//.setSize(boxStartSize[1]);	
 			}
 		}
 		else
@@ -211,8 +222,8 @@ public class MenuSys {
 					}
 				break;
 				case OPTIONS:
-					this.currSubMenu = calcSubmenu(Menu.GENERAL.ordinal()+i);
-					subMenuVisible = true;
+					changeSubmenu(Menu.GENERAL.ordinal(), i);
+					
 				break;
 				case CHECK:
 					switch(i)
@@ -229,9 +240,71 @@ public class MenuSys {
 	}
 	
 	/*
-	 * Finds menu in Menu enum with specifed index
+	 * Displays submenu options depending on currMenu and index of button pressed
 	 */
-	private Menu calcSubmenu(int i)
+	private void changeSubmenu(int currMenu, int idx)
+	{
+		this.currSubMenu = calcMenuFromId(currMenu+idx);
+		subMenuVisible = true;
+		animateSubBoxes(idx);
+	}
+	
+	private void submenuOptionClicked(int i)
+	{
+		//if (currMenu==Menu.OPTIONS && i==Menu.LANGUAGE.ordinal())
+		//TODO: DO PROPERLY
+		centralBox.setFinalPos(new Vector2D(boxs[0].getPos().x-Box.size, boxs[0].getPos().y));
+		centralBox.setFinalSize(3*Box.size, 3*Box.size);
+	}
+	
+	/*
+	 * Animates subboxes depending on which main box was pressed
+	 */
+	private void animateSubBoxes(int i)
+	{
+		//Set final position depending on main box pressed
+		Point p = null;
+		switch (i)
+		{
+		case 0:
+		case 3:
+			p = boxs[i].getPos();
+			for (int j = 0; j < NUM_BOXES; j++)
+			{
+				if (j < 2)
+					subBoxs[j].setFinalPos(new Vector2D(p.x-Box.subSizeW, p.y+6+j*(Box.subSizeH+6)));
+				else
+					subBoxs[j].setFinalPos(new Vector2D(p.x+Box.size, p.y+6+(j-2)*(Box.subSizeH+6)));
+			}
+			
+		break;
+		case 1:
+		case 2:
+			int ofst = (i==2) ? 1 : -1;
+			p = boxs[i].getPos();
+			for (int j = 0; j < NUM_BOXES; j++)
+			{
+				subBoxs[j].setFinalPos(new Vector2D(p.x+ofst*Box.subSizeW, p.y+6+j*(Box.subSizeH+6)));
+			}
+		break;
+		}
+		
+		subBoxStartPos = new Vector2D(p.x, p.y);
+		
+		//Animate subBoxes
+		for (int n = 0; n < NUM_BOXES; n++)
+		{
+//				if (n==0 || n ==3)
+//					boxs[n].setPos(boxStartPos).setSize(boxStartSize[0]);
+//				else
+			subBoxs[n].setPos(subBoxStartPos);//.setSize(subBoxStartSize);	
+		}
+	}
+	
+	/*
+	 * Finds menu in Menu enum with specified index
+	 */
+	private Menu calcMenuFromId(int i)
 	{
 		for (Menu m : Menu.values() )
 		{
@@ -253,22 +326,26 @@ public class MenuSys {
 		drawMenuHeader(g);
 		setTextAndDraw(g, currMenu.ordinal(), currSubMenu.ordinal());
 		
-		new Box(boxStartPos, "").setColor(Color.DARK_GRAY, Color.BLACK).draw(g);
+		centralBox.draw(g);
 	}
 	
 	private void setTextAndDraw(Graphics g, int i, int j)
 	{
 		timer++;
 		g.setFont(Fonts.smallfont);
+		//Draw subboxes (behind main boxes)
+		for (int n = 0; n < NUM_BOXES; n++)
+		{
+			//TODO: SubBoxes - change
+			subBoxs[n].setText(txt[j][n]).draw(g);
+			subBoxs[n].setVisible(subMenuVisible);
+		}
+		//Draw main boxes
 		for (int n = 0; n < NUM_BOXES; n++)
 		{
 			boxs[n].setText(txt[i][n]).draw(g);
 			//If box has no text make it invisible
 			boxs[n].setVisible(!boxs[n].hasNoText());
-			
-			//TODO: SubBoxes - change
-			subBoxs[n].setText(txt[j][n]).draw(g);
-			subBoxs[n].setVisible(subMenuVisible);
 		}
 	}
 	
@@ -308,6 +385,18 @@ public class MenuSys {
 					{
 						changeMenu(i);
 						break;
+					}
+				}
+				if (subMenuVisible)
+				{
+					//Get rectangle which has been clicked
+					for (int i = 0; i < NUM_BOXES; i++)
+					{
+						if (subBoxs[i].getRect().contains(e.getPoint()))
+						{
+							submenuOptionClicked(i);
+							break;
+						}
 					}
 				}
 			}
