@@ -23,15 +23,22 @@ public class MenuSys {
 		OPTIONS,
 		CHECK,
 		NONE,
+		
+		//SUBMENUS
+		//Options
+		GENERAL,
+		GAMEPLAY,
+		CONNECTIVITY,
 	};
 	
 	private final int NUM_IMAGES = 10;
 	private final int NUM_BOXES  = 4;
 	
 	Game game;
-	Menu currMenu;
+	Menu currMenu, currSubMenu;
 	Dimension winSize;
 	int timer;
+	boolean subMenuVisible;
 	
 	Box[] boxs, subBoxs;
 	Vector2D boxStartPos, subBoxStartPos;
@@ -42,21 +49,25 @@ public class MenuSys {
 	String[] imgFiles;
 	
 	//Assign array to this depending on language
-	String[][] txt, txtOpt;
+	String[][] txt;//, txtOpt;
 	
 	String[][] english =  { 
 							{"NEW GAME", "FIND OPPONENT", "OPTIONS", "QUIT"},  //Main menu
 							{"", "SINGLE PLAYER", "LOCAL MULTIPLAYER", "BACK"},  //New game
 							{"", "", "", "BACK"},   //Find opponent
-							{"SOUND", "LANGUAGE", "", "BACK"}, //Options
+							{"GENERAL", "GAMEPLAY", "CONNECTIVITY", "BACK"}, //Options
 							{"QUIT?", "YES", "NO", ""}, //Check
+							{"", "", "", ""},
+							{"Sound", "Language", "Animation", "Theme"},  //General
+							{"Friction", "Edge Rule", "", ""},  //Gameplay
+							{"Sign in", "Stats", "Friends", "Scoreboard"},  //Connectivity
 					  	  };
 	
-	//Options submenu text
-	String[][] englishOpt =  { 
-								{"ON", "OFF", "", ""},  //Sound
-								{"ENGLISH", "FRENCH", "GERMAN", ""},  //Language
-				  	  		 };
+//	//Options submenu text
+//	String[][] englishOpt =  { 
+//								{"ON", "OFF", "", ""},  //Sound
+//								{"ENGLISH", "FRENCH", "GERMAN", ""},  //Language
+//				  	  		 };
 					  
 	String[][] french =  { 
 							{"NOUVEAU JEU", "TROUVER ADVERSAIRE", "OPTIONS DE", "QUITTER"},  //Main menu
@@ -80,11 +91,13 @@ public class MenuSys {
 	{
 		this.game = game;
 		this.currMenu = Menu.MAIN;
+		this.currSubMenu = Menu.NONE;
+		this.subMenuVisible = false;
 		this.winSize = winSize;
 		this.timer = 0;
 		//TODO: Get country connected on and set language (default to English)
 		this.txt = english;
-		this.txtOpt = englishOpt;
+//		this.txtOpt = englishOpt;
 		loadGraphics();
 		setupBoxes();
 		
@@ -165,6 +178,7 @@ public class MenuSys {
 		if (m!=Menu.NONE)
 		{
 			this.currMenu = m;
+			subMenuVisible = false;
 			//Animate boxes
 			for (int n = 0; n < NUM_BOXES; n++)
 			{
@@ -179,9 +193,9 @@ public class MenuSys {
 			//TODO: put in special cases for things like 'quit' and options(sound, language etc.) here
 			switch (currMenu)
 			{
-//				case NONE:
-//				case MAIN:
-//				break;
+				case NONE:
+				case MAIN:
+				break;
 				case NEW_GAME:
 					switch(i)
 					{
@@ -197,13 +211,8 @@ public class MenuSys {
 					}
 				break;
 				case OPTIONS:
-					switch(i)
-					{
-						//Language
-						case 1:
-							
-						break;
-					}
+					this.currSubMenu = calcSubmenu(Menu.GENERAL.ordinal()+i);
+					subMenuVisible = true;
 				break;
 				case CHECK:
 					switch(i)
@@ -220,6 +229,21 @@ public class MenuSys {
 	}
 	
 	/*
+	 * Finds menu in Menu enum with specifed index
+	 */
+	private Menu calcSubmenu(int i)
+	{
+		for (Menu m : Menu.values() )
+		{
+			if (m.ordinal()==i)
+			{
+				return m;
+			}
+		}
+		return Menu.NONE;
+	}
+	
+	/*
 	 * Draws correct menu depending on current state
 	 */
 	public void draw(Graphics g)
@@ -227,12 +251,12 @@ public class MenuSys {
 		//TODO: at the moment this is called every frame which is unnecessary
 		//can stop calling when animation finished and mouse is not over a box
 		drawMenuHeader(g);
-		setTextAndDraw(g, currMenu.ordinal());
+		setTextAndDraw(g, currMenu.ordinal(), currSubMenu.ordinal());
 		
 		new Box(boxStartPos, "").setColor(Color.DARK_GRAY, Color.BLACK).draw(g);
 	}
 	
-	private void setTextAndDraw(Graphics g, int i)
+	private void setTextAndDraw(Graphics g, int i, int j)
 	{
 		timer++;
 		g.setFont(Fonts.smallfont);
@@ -243,7 +267,8 @@ public class MenuSys {
 			boxs[n].setVisible(!boxs[n].hasNoText());
 			
 			//TODO: SubBoxes - change
-			subBoxs[n].setText(txtOpt[0][n]).draw(g);
+			subBoxs[n].setText(txt[j][n]).draw(g);
+			subBoxs[n].setVisible(subMenuVisible);
 		}
 	}
 	
@@ -311,6 +336,20 @@ public class MenuSys {
 					else
 					{
 						boxs[i].setColor(Color.GRAY, Color.BLACK);
+					}
+				}
+				if (subMenuVisible)
+				{
+					for (int i = 0; i < NUM_BOXES; i++)
+					{
+						if (subBoxs[i].getRect().contains(e.getPoint()))
+						{
+							subBoxs[i].setColor(Color.RED, Color.WHITE);
+						}
+						else
+						{
+							subBoxs[i].setColor(Color.GRAY, Color.BLACK);
+						}
 					}
 				}
 			}
