@@ -10,7 +10,7 @@ import utils.Vector2D;
 
 public class Box {
 
-	public static final int size = 150;
+	public static final int size = 152;
 	public static final int subSizeW = 150;
 	public static final int subSizeH = 20;
 	public final int ANIM_SPEED = 2;
@@ -118,7 +118,10 @@ public class Box {
 		return this;
 	}
 	
-
+	public Vector2D getFinalPos()
+	{
+		return finalPos;
+	}
 	
 	/*
 	 * Moves the box a step toward its target position
