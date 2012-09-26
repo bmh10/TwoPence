@@ -11,6 +11,7 @@ import utils.Vector2D;
 public class Box {
 
 	public static final int size = 152;
+	public static final int iconSize = 43;
 	public static final int subSizeW = 150;
 	public static final int subSizeH = 20;
 	public final int ANIM_SPEED = 2;
@@ -91,6 +92,13 @@ public class Box {
 		return this;
 	}
 	
+	public Box setPosBoth(Vector2D v)
+	{
+		this.box.x = (int) v.x;
+		this.box.y = (int) v.y;
+		this.finalPos = v;;
+		return this;
+	}
 		
 	public Box setVisible(boolean b)
 	{
