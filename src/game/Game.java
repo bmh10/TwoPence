@@ -40,7 +40,7 @@ public class Game extends Applet implements Runnable {
 	//Another shot for hitting selected coin between other coins (without contact)
 	boolean anotherShot;
 	//Bonus shot due to other player's mistake
-	boolean bonusShot;
+	//boolean bonusShot;
 	boolean collision;
 	Vector2D l1, l2;
 	
@@ -100,7 +100,7 @@ public class Game extends Applet implements Runnable {
 
 		// Default settings
 		rPlayerTurn = true;
-		shotMade = true;
+		shotMade = false;
 		anotherShot = false;
 		collision = false;
 		goalWidth = goalWidthMed;
@@ -189,6 +189,18 @@ public class Game extends Applet implements Runnable {
 		{
 			coins[i].startPlay();
 		}
+		
+		Coin selCoin = coins[0];
+		for (int i = 1; i < coinCount; i++)
+		{
+			if (checkSelected(coins[i], selCoin))
+			{
+				selCoin = coins[i];
+			}
+		}
+		selCoin.setSelected(true);
+		
+			
 		state = PLAYING;
 	}
 	
@@ -330,19 +342,19 @@ public class Game extends Applet implements Runnable {
 				anotherShot = false;
 			}
 			
-			if (!anotherShot && !bonusShot)
+			if (!anotherShot)// && !bonusShot)
 			{
 				rPlayerTurn = !rPlayerTurn;
 				if (!collision)
 				{
-					//If no collisions (&& have not earned another shot) other player gets 2 shots 
-					bonusShot = true;
+					//If no collisions (&& have not earned another shot) other player gets a penalty
+					setupPenalty();
 				}
 			}
 			else
 			{
 				anotherShot = false;
-				bonusShot = false;
+				//bonusShot = false;
 			}
 			
 
@@ -394,6 +406,25 @@ public class Game extends Applet implements Runnable {
 		else
 		{
 			return c1.getPos().x < selCoin.getPos().x;
+		}
+	}
+	
+	/*
+	 * Sets up penalty position for correct player
+	 */
+	private void setupPenalty()
+	{
+		if (rPlayerTurn)
+		{
+			coins[0].setPos(new Vector2D(rL.x+100, rL.y+150));
+			coins[1].setPos(new Vector2D(rL.x+100, rL.y+rL.height-150));
+			coins[2].setPos(new Vector2D(rR.x-600, rL.y+rL.height/2));
+		}
+		else
+		{
+			coins[0].setPos(new Vector2D(rR.x-100, rR.y+150));
+			coins[1].setPos(new Vector2D(rR.x-100, rR.y+rR.height-150));
+			coins[2].setPos(new Vector2D(rL.x+600, rR.y+rR.height/2));
 		}
 	}
 	
@@ -703,87 +734,92 @@ public class Game extends Applet implements Runnable {
 		g.fillRect(0, 0, winSize.width, winSize.height);
 		g.setColor(getForeground());
 		
-		if (!coins[0].inPlay) {
+		if (state==MENU) //!coins[0].inPlay) {
+		{ 
 			menuSys.draw(g);
 		}
-
-		// Re-draw game screen
-		for (int i = 0; i < coinCount; i++)
+		else
 		{
-			coins[i].draw(g);
-		}
-		
-		//debug - draw goal score area and outer areas
-		g.setColor(Color.WHITE);
-		g.fillRect(rL.x, rL.y, rL.width, rL.height);
-		g.fillRect(rR.x, rR.y, rR.width, rR.height);
-		g.setColor(Color.BLUE);
-		for (int i = 0; i < boundryRects.length; i++)
-		{
-			g.fillRect(boundryRects[i].x, boundryRects[i].y, boundryRects[i].width, boundryRects[i].height);
-		}
-			
-		
-		//Draw goal posts
-		g.setColor(Color.YELLOW);
-		Vector2D p = this.goalPostLB;
-		g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
-		p = this.goalPostLT;
-		g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
-		p = this.goalPostRB;
-		g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
-		p = this.goalPostRT;
-		g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
 
-		
-		//Draw line between 2 unselected coins
-
-		Coin selCoin = null;
-		for (int i = 0; i < coinCount; i++)
-		{
-			if (coins[i].isSelected())
+			// Re-draw game screen
+			for (int i = 0; i < coinCount; i++)
 			{
-				selCoin = coins[i];
+				coins[i].draw(g);
 			}
-		}
-
-		
-		if (state==PLAYING && shotMade)
-		{
-			g.drawLine((int)l1.x, (int)l1.y, (int)l2.x, (int)l2.y);
 			
-			//debug - draw complete line
-			float gradient = (l2.y-l1.y)/(l2.x-l1.x);
-			float c = l1.y - gradient*l1.x;
+			//debug - draw goal score area and outer areas
 			g.setColor(Color.WHITE);
-			//g.drawLine(-1000, (int) (gradient*-1000+c), 1000, (int) (gradient*1000+c));
-			
-			//debug - draw normal to line
+			g.fillRect(rL.x, rL.y, rL.width, rL.height);
+			g.fillRect(rR.x, rR.y, rR.width, rR.height);
 			g.setColor(Color.BLUE);
-			if (selCoin!= null && selCoin.ip != null)
-				g.drawLine((int)selCoin.ip.x, (int)selCoin.ip.y, (int) selCoin.getPos().x, (int) selCoin.getPos().y);
-		}
-		
-		
-		
-		if (ballTrail && state == PLAYING) {
-			for (int i = 0; i < ballSmokeParticles.size(); i++)
+			for (int i = 0; i < boundryRects.length; i++)
 			{
-				BallSmokeParticle particle = ballSmokeParticles.get(i);
-				if (particle != null)
-					particle.draw(g);
+				g.fillRect(boundryRects[i].x, boundryRects[i].y, boundryRects[i].width, boundryRects[i].height);
 			}
+				
+			
+			//Draw goal posts
+			g.setColor(Color.YELLOW);
+			Vector2D p = this.goalPostLB;
+			g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
+			p = this.goalPostLT;
+			g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
+			p = this.goalPostRB;
+			g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
+			p = this.goalPostRT;
+			g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
+	
+			
+			//Draw line between 2 unselected coins
+	
+			Coin selCoin = null;
+			for (int i = 0; i < coinCount; i++)
+			{
+				if (coins[i].isSelected())
+				{
+					selCoin = coins[i];
+				}
+			}
+	
+			
+			if (state==PLAYING && shotMade)
+			{
+				g.drawLine((int)l1.x, (int)l1.y, (int)l2.x, (int)l2.y);
+				
+				//debug - draw complete line
+				float gradient = (l2.y-l1.y)/(l2.x-l1.x);
+				float c = l1.y - gradient*l1.x;
+				g.setColor(Color.WHITE);
+				//g.drawLine(-1000, (int) (gradient*-1000+c), 1000, (int) (gradient*1000+c));
+				
+				//debug - draw normal to line
+				g.setColor(Color.BLUE);
+				if (selCoin!= null && selCoin.ip != null)
+					g.drawLine((int)selCoin.ip.x, (int)selCoin.ip.y, (int) selCoin.getPos().x, (int) selCoin.getPos().y);
+			}
+			
+			
+			
+			if (ballTrail && state == PLAYING) {
+				for (int i = 0; i < ballSmokeParticles.size(); i++)
+				{
+					BallSmokeParticle particle = ballSmokeParticles.get(i);
+					if (particle != null)
+						particle.draw(g);
+				}
+			}
+			
+			if (coins[0].inPlay)
+			{
+				drawIngameScores(g);
+				int x = (!rPlayerTurn) ? 50 : winSize.width-70;
+				g.fillRect(x, 10,20, 20);
+			}
+			
+			if (paused)
+				centerString(g, g.getFontMetrics(),"PAUSED" , 300);
+			
 		}
-		
-		if (coins[0].inPlay)
-		{
-			drawIngameScores(g);
-			int x = (!rPlayerTurn) ? 50 : winSize.width-70;
-			g.fillRect(x, 10,20, 20);
-		}
-		
-		if (paused)
-			centerString(g, g.getFontMetrics(),"PAUSED" , 300);
 
 		if (showStats)
 			displayStats(g, 150);
@@ -904,9 +940,14 @@ public class Game extends Applet implements Runnable {
 		
 		switch(state) {
 			case PLAYING:
-				if (key == KeyEvent.VK_P) {
+				if (key == KeyEvent.VK_P)
+				{
 					if (paused) { coins[0].flash(); paused = false; engine.resume(); }
 					else { coins[0].flash(); paused = true; engine.suspend(); }
+				}
+				else if (key == KeyEvent.VK_ESCAPE)
+				{
+					state = MENU;
 				}
 				
 	

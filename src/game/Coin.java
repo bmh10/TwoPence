@@ -31,6 +31,7 @@ public class Coin {
 	private boolean selected, powerLineVisible;
 	private Vector2D mousePos;
 	
+	//ip=intersection point
 	public Vector2D ip;
 	
 	BallSmokeParticle b;
@@ -53,7 +54,7 @@ public class Coin {
 		return pos;
 	}
 	
-	private void setPos(Vector2D pos) {
+	public void setPos(Vector2D pos) {
 		this.pos = pos;
 	}
 	
@@ -112,6 +113,7 @@ public class Coin {
 		vel.x = 0; //(Math.random()<0.5) ? -1 : 1; 
 		vel.y = 0; //(Math.random()<0.5) ? -1 : 1;
 		pos = new Vector2D(startPos.x, startPos.y); //?? this mat not work-> new Point(startPos.x, startPos.y) ??
+		this.setSelected(false);
 	}
 	
 	/*
@@ -316,7 +318,7 @@ public class Coin {
 	{
 	    // get the mtd
 	    Vector2D delta = (pos.subtract(coin.getPos()));
-	    float d =  (delta.getLength());
+	    float d = (delta.getLength());
 	    // minimum translation distance to push balls apart after intersecting
 	    Vector2D mtd = delta.multiply(((getRadius() + coin.getRadius())-d)/d); 
 
