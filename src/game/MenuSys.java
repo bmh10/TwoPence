@@ -78,10 +78,14 @@ public class MenuSys {
 					  
 	String[][] french =  { 
 							{"NOUVEAU JEU", "TROUVER ADVERSAIRE", "OPTIONS DE", "QUITTER"},  //Main menu
-							{"", "SEUL JOUEUR", "MULTIJOUEUR EN LOCAL", "ARRIËRE"},  //New game
+							{"", "SEUL JOUEUR", "MULTIJOUEUR EN LOCAL", "RETOUR"},  //New game
 							{"", "", "", "ARRIËRE"},   //Find opponent
-							{"SON", "LANGUE", "", "ARRIËRE"}, //Options
+							{"GENERAL", "GAMEPLAY", "CONNECTIVIT…", "RETOUR"}, //Options
 							{"QUITTER?", "OUI", "NO", ""}, //Check
+							{"", "", "", ""},
+							{"Son", "Langue", "Animation", "ThËme"},  //General
+							{"Friction", "RËgle Bord", "", ""},  //Gameplay
+							{"Connexion", "Stats", "Amis", "Tableau de bord"},  //Connectivity
 					     };
 	
 	//Defines menu flow
@@ -273,9 +277,9 @@ public class MenuSys {
 							case 1:
 								//Sets positions of sub menu boxes
 								Vector2D p = centralBoxSubmenuPos;
-								for (int j = 1; j < NUM_LANGUAGES+1; j++)
+								for (int j = 0; j < NUM_LANGUAGES; j++)
 								{
-									subMenuBoxs[j].setText(langs[j-1]).setPosBoth(new Vector2D(p.x+Box.iconSize+2*((j-1)%3)*Box.iconSize, p.y+Box.iconSize+2*(j/3)*Box.iconSize));
+									subMenuBoxs[j+1].setText(langs[j]).setPosBoth(new Vector2D(p.x+Box.iconSize+2*((j)%3)*Box.iconSize, p.y+Box.iconSize+2*(j/3)*Box.iconSize));
 								}
 								
 								
@@ -291,7 +295,68 @@ public class MenuSys {
 		drawSubmenuScreen = i;
 	}
 	
-
+	private void handleSubMenuClick(int i)
+	{
+		if (i == 0)
+		{
+			//back button
+			centralBox.setFinalPos(new Vector2D(boxs[0].getPos().x, boxs[0].getPos().y+Box.size));
+			centralBox.setFinalSize(Box.size, Box.size);
+			//No longer draw submenu
+			drawSubmenuScreen = -1;
+		}
+		else
+		{
+			switch(currMenu)
+			{
+				case OPTIONS:
+					switch (currSubMenu)
+					{
+						case GENERAL:
+							switch (drawSubmenuScreen)
+							{
+								//Sound
+								case 0:
+									//drawSound menu();
+									
+								break;
+								//Language
+								case 1:
+									switch (i)
+									{
+										case 1:
+											txt = english;
+										break;
+										case 2:
+											txt = french;
+										break;
+									}
+									
+									changeLanguage();
+								break;
+							}
+						
+						break;
+					}
+				break;
+				 
+			}
+		}
+	}
+	
+	private void changeLanguage()
+	{
+		for (int i = 0; i < NUM_BOXES; i++)
+		{
+			boxs[i].setText(txt[currMenu.ordinal()][i]);
+			subBoxs[i].setText(txt[currSubMenu.ordinal()][i]);
+		}
+//		for (int i = 0; i < NUM_SUB_BOXES; i++)
+//		{
+//			subMenuBoxs[i].setText(t);
+//		}
+		
+	}
 	
 	/*
 	 * Animates subboxes depending on which main box was pressed
@@ -508,14 +573,11 @@ public class MenuSys {
 						if (subMenuBoxs[i].getRect().contains(e.getPoint()))
 						{
 							//TODO: method which manages what to do on click (store in array?)
+							handleSubMenuClick(i);
 							//testing
 							if (i==0)
 							{
-								//back button
-								centralBox.setFinalPos(new Vector2D(boxs[0].getPos().x, boxs[0].getPos().y+Box.size));
-								centralBox.setFinalSize(Box.size, Box.size);
 								
-								drawSubmenuScreen = -1;
 							}
 //							if (i==1)
 //								txt = english;
