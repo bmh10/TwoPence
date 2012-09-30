@@ -199,8 +199,6 @@ public class Game extends Applet implements Runnable {
 			}
 		}
 		selCoin.setSelected(true);
-		
-			
 		state = PLAYING;
 	}
 	
@@ -286,51 +284,55 @@ public class Game extends Applet implements Runnable {
 				anotherShot = true;
 			}
 			
-			//If coin has passed through other two coins (i.e. another shot has been earned)
-			//&& a goal is scored then increment score
+			//Resolve collisions between colliding coins
+			for (int i = 0; i < coinCount; i++)  
+			{  
+			    for (int j = i + 1; j < coinCount; j++)  
+			    {  
+			        if (coins[i].colliding(coins[j]))  
+			        {
+			            coins[i].resolveCollision(coins[j]);
+			            collision = true;
+			        }
+			    }
+			}
 			
-			if (anotherShot)
+			//Resolve collisions between coins and walls
+			for (int i = 0; i < coinCount; i++)  
+			{
+				for (int j = 0; j < boundryRects.length; j++)
+				{
+				//NB testing with rL for now
+					if (coins[i].colliding(boundryRects[j]))
+					{
+						coins[i].resolveCollision(boundryRects[j]);
+					}
+				}
+			}
+		
+			//If coin has passed through other two coins with no collision
+			//&& a goal is scored then increment score
+			if (anotherShot && !collision)
 			{
 				if (rL.contains(selCoin.getPos().x, selCoin.getPos().y))
 				{
 					//Goal to right player
 					scores[1]++;
+					rPlayerTurn = !rPlayerTurn;
 					startNewGame();
 				}
 				else if (rR.contains(selCoin.getPos().x, selCoin.getPos().y))
-				{red
+				{
 					//Goal to left player
 					scores[0]++;
+					rPlayerTurn = !rPlayerTurn;
 					startNewGame();
 				}
 			}
 			
 		}
 		
-		//Resolve collisions between colliding coins
-		for (int i = 0; i < coinCount; i++)  
-		{  
-		    for (int j = i + 1; j < coinCount; j++)  
-		    {  
-		        if (coins[i].colliding(coins[j]))  
-		        {
-		            coins[i].resolveCollision(coins[j]);
-		            collision = true;
-		        }
-		    }
-		}
-		
-		for (int i = 0; i < coinCount; i++)  
-		{
-			for (int j = 0; j < boundryRects.length; j++)
-			{
-			//NB testing with rL for now
-				if (coins[i].colliding(boundryRects[j]))
-				{
-					coins[i].resolveCollision(boundryRects[j]);
-				}
-			}
-		}
+
 		
 		//Post shot update
 		//Select correct coin depending on which player's turn (only when all coins are stationary and shot been made)

@@ -129,14 +129,35 @@ public class Coin {
 		
 		
 		//Find equation for perpendicular line
-		float lineGradient = (p2.y-p1.y) / (p2.x-p1.x);
-		float normalGradient = -1/lineGradient;
-		// y intersection for line
-		float c1 = p1.y - lineGradient*p1.x;
-		// y intersection for perpendicular line
-		float c2 = this.pos.y - normalGradient*this.pos.x;
-		//Intersection point
-		ip = getIntersectionPoint(lineGradient, c1, normalGradient, c2);
+		//Handle case where line gradient could end up being infinate (i.e. vertical line)
+		float xdiff = (p2.x-p1.x);
+		if (xdiff==0)
+		{
+			//Equation of line is x=p1.x or x=p2.x
+			//Also normal gradient=0 (horizontal line)
+			//So we can calculate IP directly
+			ip = new Vector2D(p1.x, this.pos.y);
+		}
+		else
+		{
+			float lineGradient = (p2.y-p1.y) / xdiff;
+			if (lineGradient==0)
+			{
+				//i.e. we have a horizontal line so normal gradient would be infinity
+				//Again we can calculate IP directly
+				ip = new Vector2D(this.pos.x, p1.y);
+			}
+			else
+			{
+				float normalGradient = -1/lineGradient;
+				// y intersection for line
+				float c1 = p1.y - lineGradient*p1.x;
+				// y intersection for perpendicular line
+				float c2 = this.pos.y - normalGradient*this.pos.x;
+				//Intersection point
+				ip = getIntersectionPoint(lineGradient, c1, normalGradient, c2);
+			}
+		}
 			
 		if (dist <= r)
 		{
