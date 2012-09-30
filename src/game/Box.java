@@ -3,6 +3,7 @@ package game;
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 
@@ -18,6 +19,7 @@ public class Box {
 	
 	private Rectangle box;
 	private String text;
+	private Image img;
 	private Color clBox, clText;
 	private Vector2D finalPos;
 	private int finalW, finalH;
@@ -68,6 +70,12 @@ public class Box {
 	public Box setText(String t)
 	{
 		this.text = t;
+		return this;
+	}
+	
+	public Box setImage(Image i)
+	{
+		this.img = i;
 		return this;
 	}
 	
@@ -169,6 +177,10 @@ public class Box {
 			if (animate())
 			{
 				g.drawString(text, box.x+(box.width - fm.stringWidth(text))/2, box.y+(box.height)/2+5);
+				if (img!=null)
+				{
+					g.drawImage(img, box.x+(box.width-img.getWidth(null))/2, box.y+(box.height-img.getHeight(null))/2, null);
+				}
 			}
 		}
 		

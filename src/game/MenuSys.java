@@ -32,7 +32,6 @@ public class MenuSys {
 		
 	};
 	
-	private final int NUM_IMAGES = 10;
 	private final int NUM_BOXES  = 4;
 	private final int NUM_SUB_BOXES  = 10; //TODO: change to max num used
 	private final int NUM_LANGUAGES  = 6;
@@ -49,9 +48,6 @@ public class MenuSys {
 	Vector2D boxStartPos, subBoxStartPos, centralBoxSubmenuPos;
 //	Vector2D[] boxStartSize;
 //	Vector2D subBoxStartSize;
-	
-	Image[] imgs;
-	String[] imgFiles;
 	
 	//Assign array to this depending on language
 	String[][] txt;//, txtOpt;
@@ -113,7 +109,7 @@ public class MenuSys {
 		//TODO: Get country connected on and set language (default to English)
 		this.txt = english;
 //		this.txtOpt = englishOpt;
-		loadGraphics();
+//		loadGraphics();
 		setupBoxes();
 		
 		//Init mouse and key listeners
@@ -121,40 +117,42 @@ public class MenuSys {
 		game.addMouseMotionListener(menuMoveListener);
 	}
 	
-	/*
-	 * Loads grpahics files using file names stored in imgFiles array
-	 */
-	private void loadGraphics()
-	{
-		imgs = new Image[NUM_IMAGES];
-		imgFiles = new String[NUM_IMAGES];
-		setFileNames();
-		for (int i = 0; i < NUM_IMAGES; i++)
-		{
-			imgs[i] = game.getImage(game.getDocumentBase(), imgFiles[i]);
-		}
-	}
-	
-	/*
-	 * Sets all graphics file names
-	 */
-	private void setFileNames()
-	{
-		imgFiles[0] = "pong_logo.gif";
-		//TODO: Add new graphics here
-	}
+//	/*
+//	 * Loads graphics files using file names stored in imgFiles array
+//	 */
+//	private void loadGraphics()
+//	{
+//		imgs = new Image[NUM_IMAGES];
+//		imgFiles = new String[NUM_IMAGES];
+//		setFileNames();
+//		for (int i = 0; i < NUM_IMAGES; i++)
+//		{
+//			imgs[i] = game.getImage(game.getDocumentBase(), imgFiles[i]);
+//		}
+//	}
+//	
+//	/*
+//	 * Sets all graphics file names
+//	 */
+//	private void setFileNames()
+//	{
+//		imgFiles[0] = "title.png";
+//		imgFiles[1] = "logo.png";
+//		//TODO: Add new graphics here
+//	}
 	
 	/*
 	 * Setups up menus boxes in correct positions
 	 */
 	private void setupBoxes()
 	{
+		int yoffset = 90;
 		this.boxs = new Box[NUM_BOXES];
 		this.subBoxs = new Box[NUM_BOXES];
 		this.subMenuBoxs = new Box[NUM_SUB_BOXES];
-		boxStartPos = new Vector2D((winSize.width-Box.size)/2,   (winSize.height-Box.size)/2);
-
-		this.centralBox = new Box(boxStartPos, "").setColor(Color.DARK_GRAY, Color.BLACK);
+		boxStartPos = new Vector2D((winSize.width-Box.size)/2,   (winSize.height-Box.size)/2+yoffset);
+		
+		this.centralBox = new Box(boxStartPos, "").setColor(Color.DARK_GRAY, Color.BLACK).setImage(game.imgs[1]);
 		
 		//TODO: Change dimensions
 		subBoxStartPos = new Vector2D(winSize.width/2-Box.size*3,   (winSize.height-Box.size)/2);
@@ -172,10 +170,13 @@ public class MenuSys {
 		
 
 		//Set positions to end in after animation
-		boxs[0].setFinalPos(new Vector2D((winSize.width-Box.size)/2,   (winSize.height-Box.size*3)/2));
-		boxs[1].setFinalPos(new Vector2D((winSize.width-Box.size*3)/2, (winSize.height-Box.size)/2));
-		boxs[2].setFinalPos(new Vector2D((winSize.width+Box.size)/2,   (winSize.height-Box.size)/2));
-		boxs[3].setFinalPos(new Vector2D((winSize.width-Box.size)/2,   (winSize.height+Box.size)/2));
+		
+		boxs[0].setFinalPos(new Vector2D((winSize.width-Box.size)/2,   (winSize.height-Box.size*3)/2+yoffset));
+		boxs[1].setFinalPos(new Vector2D((winSize.width-Box.size*3)/2, (winSize.height-Box.size)/2+yoffset));
+		boxs[2].setFinalPos(new Vector2D((winSize.width+Box.size)/2,   (winSize.height-Box.size)/2+yoffset));
+		boxs[3].setFinalPos(new Vector2D((winSize.width-Box.size)/2,   (winSize.height+Box.size)/2+yoffset));
+		
+		
 		
 		//SubMenuBoxes[0] is always back button
 		Vector2D p = centralBoxSubmenuPos = new Vector2D(boxs[0].getFinalPos().x-Box.size/2, boxs[0].getFinalPos().y+Box.size/2);
@@ -521,10 +522,11 @@ public class MenuSys {
 		FontMetrics fm = g.getFontMetrics();
 		g.setColor(Color.YELLOW);
 		//Draw logo
-		g.drawImage(imgs[0], (winSize.width-imgs[0].getWidth(null))/2, 30, null);
+		Image img = game.imgs[0];
+		g.drawImage(img, (winSize.width-img.getWidth(null))/2, 30, null);
 		g.setFont(Fonts.smallfont);
 		fm = g.getFontMetrics();
-		centerString(g, fm, "by Ben Homer", winSize.height-50);
+		g.drawString("by Ben Homer", 10, winSize.height-20);
 	}
 	
 	/*

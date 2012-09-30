@@ -23,6 +23,8 @@ import utils.Vector2D;
 @SuppressWarnings("serial")
 public class Game extends Applet implements Runnable {
 
+	private final int NUM_IMAGES = 10;
+
 	Thread engine = null;
 	Timer swingTimer;
 	Coin[] coins = new Coin[coinCount];
@@ -31,6 +33,8 @@ public class Game extends Applet implements Runnable {
 	Dimension winSize;
 	
 	Image dbimage;
+	Image[] imgs;
+	String[] imgFiles;
 	SoundManager backingTrack;
 	long initialTime;
 	
@@ -52,7 +56,8 @@ public class Game extends Applet implements Runnable {
 	boolean mouse;
 	boolean ballTrail;
 	 // difficulty => 0=easy, 1=med, 2=hard
-	int difficulty; 
+	int difficulty;
+	boolean debug = false; 
 	int goalWidth;
 	
 	
@@ -95,6 +100,7 @@ public class Game extends Applet implements Runnable {
 	 */
 	public void init() {
 		initialTime = System.currentTimeMillis();
+		loadGraphics();
 		state = MENU;
 		prevState = MENU;
 
@@ -122,9 +128,9 @@ public class Game extends Applet implements Runnable {
 		Dimension d = winSize = this.getSize();
 		menuSys = new MenuSys(this, winSize);
 
-		coins[0] = new Coin(new Vector2D(d.width/2+80, d.height/2), Color.YELLOW);
-		coins[1] = new Coin(new Vector2D(d.width/2, d.height/2+40), Color.YELLOW);
-		coins[2] = new Coin(new Vector2D(d.width/2, d.height/2-40), Color.YELLOW);
+		coins[0] = new Coin(new Vector2D(d.width/2+80, d.height/2), Color.YELLOW).setImage(imgs[2]);
+		coins[1] = new Coin(new Vector2D(d.width/2, d.height/2+40), Color.YELLOW).setImage(imgs[2]);
+		coins[2] = new Coin(new Vector2D(d.width/2, d.height/2-40), Color.YELLOW).setImage(imgs[2]);
 		for (int i = 0; i < coinCount; i++)
 		{
 			coins[i].setRange(0, d.width-1, 0, d.height-1);
@@ -135,18 +141,18 @@ public class Game extends Applet implements Runnable {
 		this.goalPostRT = new Vector2D(winSize.width-goalPostSize*2, winSize.height/2 - goalWidth/2);
 		this.goalPostRB = new Vector2D(winSize.width-goalPostSize*2, winSize.height/2 + goalWidth/2);
 		
-		rL = new Rectangle(0, (int)goalPostLT.y+goalPostSize, 2*goalPostSize, goalWidth-goalPostSize);
-		rR = new Rectangle(winSize.width-2*goalPostSize, (int)goalPostLT.y+goalPostSize, 2*goalPostSize, goalWidth-goalPostSize);
+		rL = new Rectangle(0, (int)goalPostLT.y, 2*goalPostSize, goalWidth);
+		rR = new Rectangle(winSize.width-2*goalPostSize, (int)goalPostLT.y, 2*goalPostSize, goalWidth);
 		
 		this.boundryRects = new Rectangle[4];
 		//Top left
-		boundryRects[0] = new Rectangle(0, 0, 2*goalPostSize, (winSize.height-goalWidth)/2 + goalPostSize);
+		boundryRects[0] = new Rectangle(0, 0, 2*goalPostSize, (winSize.height-goalWidth)/2);
 		//Bottom left
-		boundryRects[1] = new Rectangle(rL.x, rL.y+goalWidth - goalPostSize, 2*goalPostSize, (winSize.height-goalWidth)/2 + goalPostSize);
+		boundryRects[1] = new Rectangle(rL.x, rL.y+goalWidth, 2*goalPostSize, (winSize.height-goalWidth)/2 + goalPostSize);
 		//Top right
-		boundryRects[2] = new Rectangle(winSize.width-2*goalPostSize, 0, 2*goalPostSize, (winSize.height-goalWidth)/2 + goalPostSize);
+		boundryRects[2] = new Rectangle(winSize.width-2*goalPostSize, 0, 2*goalPostSize, (winSize.height-goalWidth)/2);
 		//Bottom right
-		boundryRects[3] = new Rectangle(rR.x, rR.y+goalWidth - goalPostSize, 2*goalPostSize, (winSize.height-goalWidth)/2 + goalPostSize);
+		boundryRects[3] = new Rectangle(rR.x, rR.y+goalWidth, 2*goalPostSize, (winSize.height-goalWidth)/2 + goalPostSize);
 		
 		
 		
@@ -165,6 +171,33 @@ public class Game extends Applet implements Runnable {
 		this.addKeyListener(keyListener);
 		this.addMouseMotionListener(mouseMoveListener);
 		this.addMouseListener(mouseClickListener);
+	}
+	
+		/*
+	 * Loads graphics files using file names stored in imgFiles array
+	 */
+	private void loadGraphics()
+	{
+		imgs = new Image[NUM_IMAGES];
+		imgFiles = new String[NUM_IMAGES];
+		setFileNames();
+		for (int i = 0; i < NUM_IMAGES; i++)
+		{
+			imgs[i] = getImage(getDocumentBase(), imgFiles[i]);
+		}
+	}
+	
+	/*
+	 * Sets all graphics file names
+	 */
+	private void setFileNames()
+	{
+		String fp = "images/";
+		imgFiles[0] = fp+"title.png";
+		imgFiles[1] = fp+"logo.png";
+		imgFiles[2] = fp+"coins/mayan0.png";
+		imgFiles[3] = fp+"mayan/block.png";
+		//TODO: Add new graphics here
 	}
 
 
@@ -756,20 +789,28 @@ public class Game extends Applet implements Runnable {
 			g.setColor(Color.BLUE);
 			for (int i = 0; i < boundryRects.length; i++)
 			{
-				g.fillRect(boundryRects[i].x, boundryRects[i].y, boundryRects[i].width, boundryRects[i].height);
+				if (debug)
+				{
+					g.fillRect(boundryRects[i].x, boundryRects[i].y, boundryRects[i].width, boundryRects[i].height);
+				}
+				g.drawImage(imgs[3], boundryRects[i].x, boundryRects[i].y, null);
+				g.drawImage(imgs[3], boundryRects[i].x, boundryRects[i].y+imgs[3].getHeight(null), null);
 			}
 				
 			
 			//Draw goal posts
-			g.setColor(Color.YELLOW);
-			Vector2D p = this.goalPostLB;
-			g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
-			p = this.goalPostLT;
-			g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
-			p = this.goalPostRB;
-			g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
-			p = this.goalPostRT;
-			g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
+			if (debug)
+			{
+				g.setColor(Color.YELLOW);
+				Vector2D p = this.goalPostLB;
+				g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
+				p = this.goalPostLT;
+				g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
+				p = this.goalPostRB;
+				g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
+				p = this.goalPostRT;
+				g.fillRect((int)p.x, (int)p.y, goalPostSize, goalPostSize);
+			}
 	
 			
 			//Draw line between 2 unselected coins

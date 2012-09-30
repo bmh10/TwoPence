@@ -1,7 +1,10 @@
 package game;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Rectangle;
 
 import utils.Utils;
@@ -23,9 +26,10 @@ public class Coin {
 
 
 	private Vector2D pos, startPos;
-	private Vector2D vel;;
+	private Vector2D vel;
 	private int xrangemin, xrangemax, yrangemin, yrangemax;
 	private int size;
+	private Image img;
 	public boolean inPlay;
 	private Color color, defColor;
 	private boolean selected, powerLineVisible;
@@ -84,6 +88,11 @@ public class Coin {
 		return 1;
 	}
 	
+	public Coin setImage(Image i) {
+		this.img = i;
+		return this;
+	}
+	
 	public boolean isSelected() {
 		return this.selected;
 	}
@@ -121,7 +130,6 @@ public class Coin {
 	 */
 	public boolean intersectsLine(Vector2D p1, Vector2D p2)
 	{
-		boolean intersects = false;
 		float r = getRadius();
 		
 		//Get shortest dist from center of circle to line
@@ -158,22 +166,10 @@ public class Coin {
 				ip = getIntersectionPoint(lineGradient, c1, normalGradient, c2);
 			}
 		}
-			
-		if (dist <= r)
-		{
-			//Circle intersects line, now need to find if it intersects
-			//the specific line segment between the two coins
-			
-			
-			
-//			if (p1.x <= ip.x && ip.x <= p2.x && p1.y <= ip.y && ip.y <= p2.y)
-			if (isBetween(p1, p2, ip))
-			{
-				intersects = true;
-			}
-		}
 		
-		return intersects;
+		//If circle intersects line and more specifically the line segment between
+		//the two coins, return true.
+		return (dist <= r && isBetween(p1, p2, ip));
 	}
 	
 	/* 
@@ -446,11 +442,29 @@ public class Coin {
 		
 		color = (selected) ? selColor : defColor;
 		g.setColor(color);
-		g.fillOval((int)pos.x-size/2, (int)pos.y-size/2, size, size);
+//		g.fillOval((int)pos.x-size/2, (int)pos.y-size/2, size, size);
+		if (img!=null)
+		{
+			g.drawImage(img, (int)(pos.x-getRadius()), (int)(pos.y-getRadius()), null);
+		}
 		
 		if (selected && powerLineVisible)
 		{
-			g.drawLine((int)pos.x, (int)pos.y, (int) mousePos.x, (int) mousePos.y);
+			double dist = Math.sqrt(Utils.power(pos.x-mousePos.x, 2) + Utils.power(pos.y-mousePos.y, 2));
+			float r,gr,b;
+			r = (float)dist/500;
+			gr = (float)(1.0f-dist/500);
+			b = 0.0f;
+			if (gr < 0 || r > 1)
+			{
+				r  = 1.0f;
+				gr = 0.0f;
+			}
+			Color c = new Color (r, gr, b);
+			g.setColor(c);
+			Graphics2D g2 = (Graphics2D) g;
+			g2.setStroke(new BasicStroke(3));
+			g2.drawLine((int)pos.x, (int)pos.y, (int) mousePos.x, (int) mousePos.y);
 		}
 			
 	}
