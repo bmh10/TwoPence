@@ -371,19 +371,25 @@ public class Coin {
 	 */
 	public boolean colliding(Rectangle rect)
 	{
+	return false;
+//		return (rect.contains(pos.x-getRadius(), pos.y) ||
+//				rect.contains(pos.x+getRadius(), pos.y) ||
+//				rect.contains(pos.x, pos.y-getRadius()) ||
+//				rect.contains(pos.x, pos.y+getRadius()));
+		
 //		Vector2D p1, p2;
-		if (rect.x==0)
-		{
-//			p1 = new Vector2D(rect.x+rect.width, rect.y);
-//			p2 = new Vector2D(rect.x+rect.width, rect.y+rect.height);
-			return (rect.contains(pos.x-getRadius(), pos.y));
-		}
-		else
-		{
-//			p1 = new Vector2D(rect.x, rect.y);
-//			p2 = new Vector2D(rect.x, rect.y+rect.height);
-			return (rect.contains(pos.x+getRadius(), pos.y));
-		}
+//		if (rect.x==0)
+//		{
+////			p1 = new Vector2D(rect.x+rect.width, rect.y);
+////			p2 = new Vector2D(rect.x+rect.width, rect.y+rect.height);
+//			return (rect.contains(pos.x-getRadius(), pos.y));
+//		}
+//		else
+//		{
+////			p1 = new Vector2D(rect.x, rect.y);
+////			p2 = new Vector2D(rect.x, rect.y+rect.height);
+//			return (rect.contains(pos.x+getRadius(), pos.y));
+//		}
 		
 //		return (pointToLineDistance(p1, p2, this.pos) <= getRadius());
 			
@@ -394,16 +400,30 @@ public class Coin {
 	 */
 	public void resolveCollision(Rectangle rect)
 	{
-		if (rect.x==0)
+		if  (rect.contains(pos.x-getRadius(), pos.y))
 		{
 			pos.x = rect.x+rect.width+getRadius()+1;
+			vel.x = -vel.x * restitution;
+			vel.y *= restitution;
 		}
-		else
+		else if (rect.contains(pos.x+getRadius(), pos.y))
 		{
 			pos.x = rect.x-getRadius()-1;
+			vel.x = -vel.x * restitution;
+			vel.y *= restitution;
 		}
-		vel.x = -vel.x * restitution;
-		vel.y *= restitution;
+		else if (rect.contains(pos.x, pos.y-getRadius()))
+		{
+			pos.y = rect.y+rect.height+getRadius()+1;
+			vel.y = -vel.y * restitution;
+			vel.x *= restitution;
+		}
+		else if (rect.contains(pos.x, pos.y+getRadius()))
+		{
+			pos.y = rect.y-getRadius()-1;
+			vel.y = -vel.y * restitution;
+			vel.x *= restitution;
+		}
 	}
 	
 	/*

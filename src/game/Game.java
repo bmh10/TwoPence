@@ -24,6 +24,9 @@ import utils.Vector2D;
 public class Game extends Applet implements Runnable {
 
 	private final int NUM_IMAGES = 10;
+	private final int HUD_MSG_MAX_TIME = 150;
+	
+	boolean debug = false; 
 
 	Thread engine = null;
 	Timer swingTimer;
@@ -47,6 +50,8 @@ public class Game extends Applet implements Runnable {
 	//boolean bonusShot;
 	boolean collision;
 	Vector2D l1, l2;
+	String hudText;
+	int hudMsgTimer;
 	
 	int[] scores = {0, 0};
 	
@@ -57,7 +62,6 @@ public class Game extends Applet implements Runnable {
 	boolean ballTrail;
 	 // difficulty => 0=easy, 1=med, 2=hard
 	int difficulty;
-	boolean debug = false; 
 	int goalWidth;
 	
 	
@@ -79,7 +83,6 @@ public class Game extends Applet implements Runnable {
 //	static final int CHECK = 6;
 
 	public static final int coinCount = 3;
-	public static final int goalWidthMed = 500;
 	public static final int goalPostSize = 20;
 	
 	private Vector2D goalPostLT, goalPostLB, goalPostRT, goalPostRB;
@@ -109,9 +112,10 @@ public class Game extends Applet implements Runnable {
 		shotMade = false;
 		anotherShot = false;
 		collision = false;
-		goalWidth = goalWidthMed;
 		l1 = new Vector2D(0, 0);
 		l2 = new Vector2D(0, 0);
+		hudText = "";
+		hudMsgTimer = 0;
 		
 		sound = true;
 		mouse = false;
@@ -127,6 +131,7 @@ public class Game extends Applet implements Runnable {
 		this.setSize(dim.width - 10, dim.height - 110);
 		Dimension d = winSize = this.getSize();
 		menuSys = new MenuSys(this, winSize);
+		goalWidth = winSize.height-8*goalPostSize;
 
 		coins[0] = new Coin(new Vector2D(d.width/2+80, d.height/2), Color.YELLOW).setImage(imgs[2]);
 		coins[1] = new Coin(new Vector2D(d.width/2, d.height/2+40), Color.YELLOW).setImage(imgs[2]);
@@ -144,15 +149,19 @@ public class Game extends Applet implements Runnable {
 		rL = new Rectangle(0, (int)goalPostLT.y, 2*goalPostSize, goalWidth);
 		rR = new Rectangle(winSize.width-2*goalPostSize, (int)goalPostLT.y, 2*goalPostSize, goalWidth);
 		
-		this.boundryRects = new Rectangle[4];
+		this.boundryRects = new Rectangle[6];
 		//Top left
-		boundryRects[0] = new Rectangle(0, 0, 2*goalPostSize, (winSize.height-goalWidth)/2);
+		boundryRects[0] = new Rectangle(0, 0, 2*goalPostSize, 4*goalPostSize);
 		//Bottom left
-		boundryRects[1] = new Rectangle(rL.x, rL.y+goalWidth, 2*goalPostSize, (winSize.height-goalWidth)/2 + goalPostSize);
+		boundryRects[1] = new Rectangle(rL.x, rL.y+goalWidth, 2*goalPostSize, 4*goalPostSize);
 		//Top right
-		boundryRects[2] = new Rectangle(winSize.width-2*goalPostSize, 0, 2*goalPostSize, (winSize.height-goalWidth)/2);
+		boundryRects[2] = new Rectangle(winSize.width-2*goalPostSize, 0, 2*goalPostSize, 4*goalPostSize);
 		//Bottom right
-		boundryRects[3] = new Rectangle(rR.x, rR.y+goalWidth, 2*goalPostSize, (winSize.height-goalWidth)/2 + goalPostSize);
+		boundryRects[3] = new Rectangle(rR.x, rR.y+goalWidth, 2*goalPostSize, 4*goalPostSize);
+		//Top bar
+		boundryRects[4] = new Rectangle(rL.x+rL.width, 0, winSize.width-2*goalPostSize, 2*goalPostSize);
+		//Bottom bar
+		boundryRects[5] = new Rectangle(rL.x+rL.width, winSize.height-2*goalPostSize, winSize.width-2*goalPostSize, 2*goalPostSize);
 		
 		
 		
@@ -335,11 +344,7 @@ public class Game extends Applet implements Runnable {
 			{
 				for (int j = 0; j < boundryRects.length; j++)
 				{
-				//NB testing with rL for now
-					if (coins[i].colliding(boundryRects[j]))
-					{
-						coins[i].resolveCollision(boundryRects[j]);
-					}
+					coins[i].resolveCollision(boundryRects[j]);
 				}
 			}
 		
@@ -351,6 +356,7 @@ public class Game extends Applet implements Runnable {
 				{
 					//Goal to right player
 					scores[1]++;
+					hudText = "GOAL!";
 					rPlayerTurn = !rPlayerTurn;
 					startNewGame();
 				}
@@ -358,6 +364,7 @@ public class Game extends Applet implements Runnable {
 				{
 					//Goal to left player
 					scores[0]++;
+					hudText = "GOAL!";
 					rPlayerTurn = !rPlayerTurn;
 					startNewGame();
 				}
@@ -449,6 +456,8 @@ public class Game extends Applet implements Runnable {
 	 */
 	private void setupPenalty()
 	{
+		hudText = "Penalty!";
+		
 		if (rPlayerTurn)
 		{
 			coins[0].setPos(new Vector2D(rL.x+100, rL.y+150));
@@ -714,15 +723,15 @@ public class Game extends Applet implements Runnable {
 	 * Displays the scores of both players and also checks for a winner in a death match
 	 */
 	public void displayScores(Graphics g) {
-		g.setFont(Fonts.scorefont);
-		g.setColor(Color.YELLOW);
-		FontMetrics fm = g.getFontMetrics();
-		String rscore = Integer.toString(scores[1]);
-		String lscore = Integer.toString(scores[0]);
-		centerString(g, fm, "Score" , 100);
-		centerString(g, fm, lscore + "    " + rscore , 150);
-		g.setFont(Fonts.smallfont);
-		fm = g.getFontMetrics();
+//		g.setFont(Fonts.scorefont);
+//		g.setColor(Color.YELLOW);
+//		FontMetrics fm = g.getFontMetrics();
+//		String rscore = Integer.toString(scores[1]);
+//		String lscore = Integer.toString(scores[0]);
+//		centerString(g, fm, "Score" , 100);
+//		centerString(g, fm, lscore + "    " + rscore , 200);
+//		g.setFont(Fonts.smallfont);
+//		fm = g.getFontMetrics();
 //		if (rplayer.getScore() == 0 && lplayer.getScore() == 0) {
 //			if (deathMatch)
 //				centerString(g, fm, "This is a Death Match: your paddle size will decrease if you lose a point" , 200);
@@ -745,8 +754,8 @@ public class Game extends Applet implements Runnable {
 //				}
 //			}
 			// If no death match winner or in classic game
-			centerString(g, fm, "Press the up key or click the mouse to continue" , 200);
-			centerString(g, fm, "Press escape to go back to the main menu" , 250);
+//			centerString(g, fm, "Press the up key or click the mouse to continue" , 200);
+//			centerString(g, fm, "Press escape to go back to the main menu" , 250);
 //		}
 	}
 	
@@ -757,7 +766,30 @@ public class Game extends Applet implements Runnable {
 		String rscore = Integer.toString(scores[1]);
 		String lscore = Integer.toString(scores[0]);
 		
-		centerString(g, fm, lscore + "    " + rscore , 50);
+		centerString(g, fm, lscore + "    " + rscore , 75);
+	}
+	
+	private void fillWithBlocks(Graphics g, Rectangle r)
+	{
+		int bw = 2*goalPostSize;
+		int w = r.width/bw;
+		int h = r.height/bw;
+		
+		if (w == 1)
+		{
+			for (int i=0; i < h; i++)
+			{
+				g.drawImage(imgs[3], r.x, r.y+i*bw, null);
+			}
+		}
+		else
+		{
+			for (int i=0; i < w; i++)
+			{
+				g.drawImage(imgs[3], r.x+i*bw, r.y, null);
+			}
+		}
+	
 	}
 	
 	/*
@@ -793,10 +825,10 @@ public class Game extends Applet implements Runnable {
 				{
 					g.fillRect(boundryRects[i].x, boundryRects[i].y, boundryRects[i].width, boundryRects[i].height);
 				}
-				g.drawImage(imgs[3], boundryRects[i].x, boundryRects[i].y, null);
-				g.drawImage(imgs[3], boundryRects[i].x, boundryRects[i].y+imgs[3].getHeight(null), null);
+				fillWithBlocks(g, boundryRects[i]);
+//				g.drawImage(imgs[3], boundryRects[i].x, boundryRects[i].y, null);
+//				g.drawImage(imgs[3], boundryRects[i].x, boundryRects[i].y+imgs[3].getHeight(null), null);
 			}
-				
 			
 			//Draw goal posts
 			if (debug)
@@ -856,11 +888,23 @@ public class Game extends Applet implements Runnable {
 			{
 				drawIngameScores(g);
 				int x = (!rPlayerTurn) ? 50 : winSize.width-70;
-				g.fillRect(x, 10,20, 20);
+				g.fillRect(x, 50,20, 20);
 			}
 			
 			if (paused)
-				centerString(g, g.getFontMetrics(),"PAUSED" , 300);
+				centerString(g, g.getFontMetrics(),"PAUSED", 300);
+				
+				
+			if (!hudText.equals(""))
+			{
+				hudMsgTimer++;
+				centerString(g, g.getFontMetrics(), hudText, winSize.height-75);
+			}
+			if (hudMsgTimer > HUD_MSG_MAX_TIME)
+			{
+				hudText = "";
+				hudMsgTimer = 0;
+			}
 			
 		}
 
