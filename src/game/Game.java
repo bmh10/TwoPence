@@ -298,7 +298,7 @@ public class Game extends Applet implements Runnable {
 					startNewGame();
 				}
 				else if (rR.contains(selCoin.getPos().x, selCoin.getPos().y))
-				{redgdgdg
+				{redgdg
 					//Goal to left player
 					scores[0]++;
 					startNewGame();
