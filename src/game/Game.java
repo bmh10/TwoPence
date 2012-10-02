@@ -13,6 +13,8 @@ import java.util.ArrayList;
 
 import javax.swing.Timer;
 
+import network.Client;
+
 import utils.Fonts;
 import utils.Vector2D;
 
@@ -180,6 +182,8 @@ public class Game extends Applet implements Runnable {
 		this.addKeyListener(keyListener);
 		this.addMouseMotionListener(mouseMoveListener);
 		this.addMouseListener(mouseClickListener);
+		
+		Client.startConnection();
 	}
 	
 		/*

@@ -23,7 +23,7 @@ public class Box {
 	private Color clBox, clText;
 	private Vector2D finalPos;
 	private int finalW, finalH;
-	private boolean visible;
+	private boolean visible, imgVisible;
 	
 	public Box()
 	{
@@ -33,7 +33,7 @@ public class Box {
 		this.text = "";
 		this.clBox = Color.GRAY;
 		this.clText = Color.WHITE;
-		this.visible = true;
+		this.visible = this.imgVisible = true;
 	}
 	
 	public Box(Vector2D pos, String text)
@@ -44,7 +44,7 @@ public class Box {
 		this.text = text;
 		this.clBox = Color.GRAY;
 		this.clText = Color.WHITE;
-		this.visible = true;
+		this.visible = this.imgVisible = true;
 	}
 	
 	public Rectangle getRect()
@@ -76,6 +76,12 @@ public class Box {
 	public Box setImage(Image i)
 	{
 		this.img = i;
+		return this;
+	}
+	
+	public Box setImageVisible(boolean b)
+	{
+		this.imgVisible = b;
 		return this;
 	}
 	
@@ -177,7 +183,7 @@ public class Box {
 			if (animate())
 			{
 				g.drawString(text, box.x+(box.width - fm.stringWidth(text))/2, box.y+(box.height)/2+5);
-				if (img!=null)
+				if (img!=null && imgVisible)
 				{
 					g.drawImage(img, box.x+(box.width-img.getWidth(null))/2, box.y+(box.height-img.getHeight(null))/2, null);
 				}

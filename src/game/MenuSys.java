@@ -10,6 +10,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
+import network.Client;
+
 import utils.Fonts;
 import utils.Vector2D;
 
@@ -259,6 +261,7 @@ public class MenuSys {
 		//TODO: DO PROPERLY
 		centralBox.setFinalPos(centralBoxSubmenuPos);
 		centralBox.setFinalSize(2*Box.size, 2*Box.size);
+		centralBox.setImageVisible(false);
 		
 		//TODO: update positions on subMenuBoxs here
 		switch(currMenu)
@@ -288,6 +291,22 @@ public class MenuSys {
 						}
 					
 					break;
+					case CONNECTIVITY:
+					switch (i)
+					{
+						//Sign in
+						case 0:
+							//TODO: Setup login screen w/ tickbox for new users
+							
+							
+						break;
+						//
+						case 1:
+							
+						break;
+					}
+					
+					break;
 				}
 			break;
 			 
@@ -303,6 +322,7 @@ public class MenuSys {
 			//back button
 			centralBox.setFinalPos(new Vector2D(boxs[0].getPos().x, boxs[0].getPos().y+Box.size));
 			centralBox.setFinalSize(Box.size, Box.size);
+			centralBox.setImageVisible(true);
 			//No longer draw submenu
 			drawSubmenuScreen = -1;
 		}
@@ -337,6 +357,18 @@ public class MenuSys {
 								break;
 							}
 						
+						break;
+						case CONNECTIVITY:
+							switch (drawSubmenuScreen)
+							{
+								//Login
+								case 0:
+								//TODO: login with typed username and pass
+								//TODO: encrpyt pass in db
+								Client.tryLogin("Clare", "clare123");
+									
+								break;
+							}
 						break;
 					}
 				break;

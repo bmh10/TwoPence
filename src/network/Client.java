@@ -6,6 +6,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 public class Client {
 
+	private static boolean DEBUG = false;
+
 	private static final int DB_NUM_COLS = 7;
 
 	private static Connection connection;
@@ -43,11 +45,16 @@ public class Client {
             el.printStackTrace();
         }
         
-        tryLogin("Zee", "zee123");
-        saveUserData();
-        //printLocalStore();
+        //Use for testing db functionality
+        if (DEBUG)
+        {
+        	tryLogin("Zee", "zee123");
+       		saveUserData();
+       		 printLocalStore();
         
-        //newUser("Fred", "fred123");
+       		 //newUser("Fred", "fred123");
+        }
+       
     }
     
     private static boolean init()
@@ -92,7 +99,7 @@ public class Client {
                 		success = true;
                 		//Update last login date
                 		statement.executeUpdate("UPDATE players SET LastLogin = '"+dateFormat.format(date)+"' WHERE Name = '"+username+"'");
-                		System.out.println("Login successful on "+dateFormat.format(date));
+                		System.out.println("Login successful as '"+username+"' on "+dateFormat.format(date));
                 		//Store name of logged in user and get user data to store locally
                 		localUsername = username;
                 		getUserData();
