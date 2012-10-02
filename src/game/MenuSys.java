@@ -5,10 +5,14 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.TextField;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Set;
 
 import network.Client;
 
@@ -35,8 +39,9 @@ public class MenuSys {
 	};
 	
 	private final int NUM_BOXES  = 4;
-	private final int NUM_SUB_BOXES  = 10; //TODO: change to max num used
+	private final int NUM_SUB_BOXES  = 15; //TODO: change to max num used
 	private final int NUM_LANGUAGES  = 6;
+	private final int NUM_TEXT_FIELDS  = 2;
 	
 	Game game;
 	Menu currMenu, currSubMenu;
@@ -48,6 +53,9 @@ public class MenuSys {
 	//boxs=main boxes, subBoxes=slide in submenu boxes, subMenuBoxs=boxes used in submenu screens
 	Box[] boxs, subBoxs, subMenuBoxs;
 	Vector2D boxStartPos, subBoxStartPos, centralBoxSubmenuPos;
+	TextField[] textFields;
+	
+//	int[] subMenuBoxMax = {NUM};
 //	Vector2D[] boxStartSize;
 //	Vector2D subBoxStartSize;
 	
@@ -152,6 +160,7 @@ public class MenuSys {
 		this.boxs = new Box[NUM_BOXES];
 		this.subBoxs = new Box[NUM_BOXES];
 		this.subMenuBoxs = new Box[NUM_SUB_BOXES];
+		this.textFields = new TextField[NUM_TEXT_FIELDS];
 		boxStartPos = new Vector2D((winSize.width-Box.size)/2,   (winSize.height-Box.size)/2+yoffset);
 		
 		this.centralBox = new Box(boxStartPos, "").setColor(Color.DARK_GRAY, Color.BLACK).setImage(game.imgs[1]);
@@ -168,6 +177,13 @@ public class MenuSys {
 		for (int i = 0; i < NUM_SUB_BOXES; i++)
 		{
 			subMenuBoxs[i] = new Box().setColor(Color.BLACK, Color.WHITE).setSizeBoth(Box.iconSize, Box.iconSize);
+		}
+		
+		for (int i = 0; i < NUM_TEXT_FIELDS; i++)
+		{
+			textFields[i] = new TextField();
+			textFields[i].setVisible(false);
+			game.add(textFields[i]);
 		}
 		
 
@@ -263,6 +279,11 @@ public class MenuSys {
 		centralBox.setFinalSize(2*Box.size, 2*Box.size);
 		centralBox.setImageVisible(false);
 		
+		//Set all suboxes invisible (except for back button)
+		for (int j = 1; j < NUM_SUB_BOXES; j++)
+		{
+			subMenuBoxs[j].reset();
+		}
 		//TODO: update positions on subMenuBoxs here
 		switch(currMenu)
 		{
@@ -283,7 +304,7 @@ public class MenuSys {
 								Vector2D p = centralBoxSubmenuPos;
 								for (int j = 0; j < NUM_LANGUAGES; j++)
 								{
-									subMenuBoxs[j+1].setText(langs[j]).setPosBoth(new Vector2D(p.x+Box.iconSize+2*((j)%3)*Box.iconSize, p.y+Box.iconSize+2*(j/3)*Box.iconSize));
+									subMenuBoxs[j+1].setVisible(true).setText(langs[j]).setSizeBoth(Box.iconSize, Box.iconSize).setPosBoth(new Vector2D(p.x+Box.iconSize+2*((j)%3)*Box.iconSize, p.y+Box.iconSize+2*(j/3)*Box.iconSize));
 								}
 								
 								
@@ -297,11 +318,58 @@ public class MenuSys {
 						//Sign in
 						case 0:
 							//TODO: Setup login screen w/ tickbox for new users
+							Vector2D p = centralBoxSubmenuPos;
 							
+							textFields[0].setText("username");
+							textFields[0].setBackground(Color.BLUE);
+							textFields[0].setForeground(Color.WHITE);
+							textFields[0].setBounds((int)centralBoxSubmenuPos.x+20, (int)centralBoxSubmenuPos.y+20, Box.size*2-40, 30);
 							
+							textFields[1].setText("password");
+							textFields[1].setBackground(Color.BLUE);
+							textFields[1].setForeground(Color.WHITE);
+							textFields[1].setBounds((int)centralBoxSubmenuPos.x+20, (int)centralBoxSubmenuPos.y+100, Box.size*2-40, 30);
+							
+							subMenuBoxs[1].setVisible(true).setPosBoth(new Vector2D (p.x+20, p.y+150)).setSizeBoth(Box.iconSize,  Box.iconSize).setToCheckbox(game.imgs[4], game.imgs[5]); //setSizeBoth(Box.size*2-40, 30).setText("Login as new user");
+							subMenuBoxs[2].setVisible(true).setPosBoth(new Vector2D (p.x+20, p.y+210)).setSizeBoth(Box.size*2-40, 30).setText("LOGIN");
+							subMenuBoxs[3].setVisible(true).setPosBoth(new Vector2D (p.x+50, p.y+155)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Check to login as new player");
 						break;
-						//
+						//Player stats
 						case 1:
+						if (Client.loggedIn)
+						{
+							int s = 30;
+							int y = (int) (centralBoxSubmenuPos.y+20);
+							int[] wdl = Client.getWDL();
+							subMenuBoxs[1].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Player name: "+Client.getName());
+							subMenuBoxs[2].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Highscore: "+Client.getHighscore());
+							subMenuBoxs[3].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Wins: "+wdl[0]);
+							subMenuBoxs[4].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Draws: "+wdl[1]);
+							subMenuBoxs[5].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Losses: "+wdl[2]);
+							subMenuBoxs[6].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Last login: "+Client.getLastLogin());
+							subMenuBoxs[7].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Ranking: "+Client.getRanking());
+						}
+						else
+						{
+							subMenuBoxs[1].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, (int)centralBoxSubmenuPos.y+20)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("You must login before you can see player stats");
+						}
+						break;
+						//Friends
+						case 2:
+						break;
+						//Highscores/rankings
+						case 3:
+							LinkedHashMap<String, Integer> hsTable = Client.getHighScoreTable();
+							Set<String> names = hsTable.keySet();
+							int n = 0;
+							int s = 20;
+							int y = (int) (centralBoxSubmenuPos.y-10);
+							for (String name : names)
+							{
+								subMenuBoxs[++n].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText(n+". "+name+" - "+hsTable.get(name));
+							}
+							
+							
 							
 						break;
 					}
@@ -325,6 +393,13 @@ public class MenuSys {
 			centralBox.setImageVisible(true);
 			//No longer draw submenu
 			drawSubmenuScreen = -1;
+			
+			//Special text cases i.e. depending on logged in/out
+			//TODO: set up arrays for altTxt in different languages
+			if (currSubMenu==Menu.CONNECTIVITY && Client.loggedIn)
+			{
+				subBoxs[0].setText("Sign out");
+			}
 		}
 		else
 		{
@@ -363,10 +438,27 @@ public class MenuSys {
 							{
 								//Login
 								case 0:
-								//TODO: login with typed username and pass
 								//TODO: encrpyt pass in db
-								Client.tryLogin("Clare", "clare123");
-									
+									switch (i)
+									{
+										//Checkbox
+										case 1:
+											subMenuBoxs[1].invertChecked();
+										break;
+										case 2:
+											if (subMenuBoxs[1].isChecked())
+											{
+												if (Client.newUser(textFields[0].getText(), textFields[1].getText()))
+													handleSubMenuClick(0);
+											}
+											else
+											{
+												if (Client.tryLogin(textFields[0].getText(), textFields[1].getText()))
+													handleSubMenuClick(0);
+											}
+										break;
+										
+									}
 								break;
 							}
 						break;
@@ -461,6 +553,10 @@ public class MenuSys {
 		{
 			drawSubmenuScreen(g);
 		}
+		else
+		{
+			setTextBoxesVisible(false);
+		}
 		
 	}
 	
@@ -477,6 +573,7 @@ public class MenuSys {
 			//If box has no text make it invisible
 			boxs[n].draw(g).setVisible(!boxs[n].hasNoText());
 		}
+
 		
 		centralBox.draw(g);
 	}
@@ -486,64 +583,95 @@ public class MenuSys {
 		//Draw submenu screen once central box has finish animating
 		if (centralBox.animate())
 		{
-			switch (currMenu)
+			for (int i = 0; i < NUM_SUB_BOXES; i++)
 			{
-				case OPTIONS:
-					switch (currSubMenu)
-					{
-						case GENERAL:
-							switch (drawSubmenuScreen)
-							{
-								//Sound
-								case 0:
-									//drawSound menu();
-									
-								break;
-								//Language
-								case 1:
-									//drawSound menu();
-									drawSubmenuLanguage(g);
-									
-								break;
-								//Animation
-								case 2:
-									//drawSound menu();
-									
-								break;
-								//Theme
-								case 3:
-									//drawSound menu();
-									
-								break;
-							}
-							break;
-					}	
-				break;
+				subMenuBoxs[i].draw(g);
 			}
+			
+			if (currSubMenu==Menu.CONNECTIVITY && drawSubmenuScreen==0)
+			{
+				setTextBoxesVisible(true);
+			}
+		}
+//			switch (currMenu)
+//			{
+//				case OPTIONS:
+//					switch (currSubMenu)
+//					{
+//						case GENERAL:
+//							switch (drawSubmenuScreen)
+//							{
+//								//Sound
+//								case 0:
+//									//drawSound menu();
+//									
+//								break;
+//								//Language
+//								case 1:
+//									//drawSound menu();
+//									drawSubmenuLanguage(g);
+//									
+//								break;
+//								//Animation
+//								case 2:
+//									//drawSound menu();
+//									
+//								break;
+//								//Theme
+//								case 3:
+//									//drawSound menu();
+//									
+//								break;
+//							}
+//							break;
+//						case CONNECTIVITY:
+//							switch (drawSubmenuScreen)
+//							{
+//								//Login
+//								case 0:
+//									 drawSubmenuLogin(g);
+//								break;
+//							}
+//						
+//						break;
+//					}	
+//				break;
+//			}
 				
-			subMenuBoxs[0].draw(g);
-		}
+//			subMenuBoxs[0].draw(g);
+//		}
 	}
 	
-	private void drawSubmenuSound(Graphics g)
+	private void setTextBoxesVisible(boolean vis)
 	{
-		//TODO: using subMenuBoxs[1+]
-	}
-	
-	private void drawSubmenuLanguage(Graphics g)
-	{
-		//TODO: using subMenuBoxs[1+] make into 1 for loop
-		for (int i = 1; i < 7; i++)
+		for (int i = 0; i < NUM_TEXT_FIELDS; i++)
 		{
-			subMenuBoxs[i].draw(g);
+			textFields[i].setVisible(vis);
 		}
-//		subMenuBoxs[1].setText("ENG").draw(g);
-//		subMenuBoxs[2].setText("FR").draw(g);
-//		subMenuBoxs[3].setText("GER").draw(g);
-//		subMenuBoxs[4].setText("ITL").draw(g);
-//		subMenuBoxs[5].setText("POL").draw(g);
-//		subMenuBoxs[6].setText("CHI").draw(g);
 	}
+	
+//	private void drawSubmenuSound(Graphics g)
+//	{
+//		//TODO: using subMenuBoxs[1+]
+//	}
+//	
+//	private void drawSubmenuLanguage(Graphics g)
+//	{
+//		//TODO: using subMenuBoxs[1+] make into 1 for loop
+//		for (int i = 1; i < 7; i++)
+//		{
+//			subMenuBoxs[i].draw(g);
+//		}
+//	}
+//	
+//	private void drawSubmenuLogin(Graphics g)
+//	{
+//		//TODO: using subMenuBoxs[1+] make into 1 for loop
+//		for (int i = 1; i < 7; i++)
+//		{
+//			subMenuBoxs[i].draw(g);
+//		}
+//	}
 	
 	/*
 	 * Draws menu header (logo and particles)
@@ -559,6 +687,11 @@ public class MenuSys {
 		g.setFont(Fonts.smallfont);
 		fm = g.getFontMetrics();
 		g.drawString("by Ben Homer", 10, winSize.height-20);
+		
+		if (Client.loggedIn)
+		{
+			g.drawString("Logged in as: "+Client.getName(), 10, 30);
+		}
 	}
 	
 	/*

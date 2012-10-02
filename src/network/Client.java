@@ -4,15 +4,20 @@ import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 public class Client {
 
 	private static boolean DEBUG = false;
 
-	private static final int DB_NUM_COLS = 7;
+	//NB This is actually 1 more than number of db cols as we also store calculated rank locally
+	private static final int DB_NUM_COLS = 8;
+	private static final int DB_HIGHSCORE_DISP_COUNT = 10;
 
 	private static Connection connection;
-	static String localUsername;
-	static String[] localStore;
+	public static boolean loggedIn;
+	private static String localUsername;
+	private static String[] localStore;
 	
     public static void startConnection()
     {
@@ -48,9 +53,10 @@ public class Client {
         //Use for testing db functionality
         if (DEBUG)
         {
-        	tryLogin("Zee", "zee123");
-       		saveUserData();
-       		 printLocalStore();
+        getHighScoreTable();
+//        	tryLogin("Zee", "zee123");
+//       		saveUserData();
+//       		 printLocalStore();
         
        		 //newUser("Fred", "fred123");
         }
@@ -61,6 +67,7 @@ public class Client {
     {
     	localUsername = "";
     	localStore = new String[DB_NUM_COLS];
+    	loggedIn = false;
     	
     	
     	return true;
@@ -102,18 +109,19 @@ public class Client {
                 		System.out.println("Login successful as '"+username+"' on "+dateFormat.format(date));
                 		//Store name of logged in user and get user data to store locally
                 		localUsername = username;
+                		loggedIn = true;
                 		getUserData();
                 	}
                 	else
                 	{
-                		System.out.print("Login failed - incorrect password"); 
+                		System.out.println("Login failed - incorrect password"); 
                 	}
                 
                 }                
             }
             else
             {
-            	System.out.print("Login failed - incorrect username");
+            	System.out.println("Login failed - incorrect username");
             }
             resset.close();
         }
@@ -148,7 +156,7 @@ public class Client {
     		System.out.println("Username cannot be blank");
     		return success;
     	}
-    	if (pass.length() > 4)
+    	if (pass.length() < 4)
     	{
     		System.out.println("Password must be at least 5 characters long");
     		return success;
@@ -171,7 +179,9 @@ public class Client {
         		statement.executeUpdate("INSERT INTO players VALUES ('"+username+"','"+pass+"','0', '0', '0', '0', '"+dateFormat.format(date)+"')");
         		System.out.println(username+" added to db on "+dateFormat.format(date));
         		//TODO: check that user has actually been inserted into table
-        		success = true;
+        		
+        		//New user made now actually log into account
+        		success = Client.tryLogin(username, pass);
             }
             
            
@@ -194,20 +204,84 @@ public class Client {
 		return success;
     }
     
-    /*
-     * Sort db by highscore
+     /*
+     * Calculate players rank
      */
-    public static boolean getHighScoreTable()
+    public static int calculateRank()
     {
-    	
-    	
-    	
-    	return true;
+   	  	int rank = -1;
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute("SELECT Name FROM `players` ORDER BY Highscore DESC");
+            
+            ResultSet resset = statement.getResultSet();
+            while (resset.next())
+            {
+            	if (localUsername.equals(resset.getString("Name")))
+            	{
+            		rank = resset.getRow();
+            	}
+            }
+            resset.close();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return rank;
     }
     
-    public static boolean checkForNewHishscore()
+    /*
+     * Sort db by highscore to get top 10 players
+     */
+    public static LinkedHashMap<String, Integer> getHighScoreTable()
     {
-    	return false;
+    	int i = 0;
+    	LinkedHashMap<String, Integer> hsTable = new LinkedHashMap<String, Integer>();
+   	  
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute("SELECT Name, Highscore FROM `players` ORDER BY Highscore DESC");
+            
+            ResultSet resset = statement.getResultSet();
+            while (resset.next() && i <  DB_HIGHSCORE_DISP_COUNT)
+            {
+            	i++;
+            	hsTable.put(resset.getString("Name"), Integer.parseInt(resset.getString("Highscore")));
+            	
+                System.out.println(resset.getRow()+", "+resset.getString("Name")+", "+Integer.parseInt(resset.getString("Highscore")));
+            }
+            resset.close();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return hsTable;
     }
     
     /*
@@ -237,6 +311,7 @@ public class Client {
             	localStore[4] = resset.getString("Draws");
             	localStore[5] = resset.getString("Losses");
             	localStore[6] = resset.getString("LastLogin");
+            	localStore[7] = Integer.toString(Client.calculateRank());
             	
 //                System.out.print(resset.getRow());
 				
@@ -317,5 +392,36 @@ public class Client {
     	}
     	System.out.println();
     }
+    
+    public static String getName()
+    {
+    	return localStore[0];
+    }
+    
+    public static int getHighscore()
+    {
+    	return Integer.parseInt(localStore[2]);
+    }
+    
+    public static int[] getWDL()
+    {
+    	int[] wdl = new int[3];
+    	for (int i = 0; i < 3; i++)
+    	{
+    		wdl[i] = Integer.parseInt(localStore[3+i]);
+    	}
+    	return wdl;
+    }
+    
+    public static String getLastLogin()
+    {
+    	return localStore[6];
+    }
+    
+    public static int getRanking()
+    {
+    	return Integer.parseInt(localStore[7]);
+    }
+    
    
 }

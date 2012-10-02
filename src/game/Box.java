@@ -1,11 +1,14 @@
 package game;
 
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+
+import java.awt.TextField;
 
 import utils.Vector2D;
 
@@ -19,11 +22,13 @@ public class Box {
 	
 	private Rectangle box;
 	private String text;
-	private Image img;
+	private Image img, img1;
 	private Color clBox, clText;
 	private Vector2D finalPos;
 	private int finalW, finalH;
 	private boolean visible, imgVisible;
+	private boolean checked, checkbox;
+	boolean onlyShowText;
 	
 	public Box()
 	{
@@ -34,6 +39,8 @@ public class Box {
 		this.clBox = Color.GRAY;
 		this.clText = Color.WHITE;
 		this.visible = this.imgVisible = true;
+		this.checked = this.checkbox = false;
+		this.onlyShowText = false;
 	}
 	
 	public Box(Vector2D pos, String text)
@@ -45,6 +52,22 @@ public class Box {
 		this.clBox = Color.GRAY;
 		this.clText = Color.WHITE;
 		this.visible = this.imgVisible = true;
+		this.checked = this.checkbox = false;
+		this.onlyShowText = false;
+	}
+	
+	public Box reset()
+	{
+		this.box = new Rectangle(0, 0, size, size);
+		this.finalPos = new Vector2D(0, 0);
+		this.finalW = this.finalH = size;
+		this.text = "";
+		this.clBox = Color.GRAY;
+		this.clText = Color.WHITE;
+		this.visible = this.imgVisible = false;
+		this.checked = this.checkbox = false;
+		this.onlyShowText = false;
+		return this;
 	}
 	
 	public Rectangle getRect()
@@ -145,6 +168,31 @@ public class Box {
 		return finalPos;
 	}
 	
+	public Box setToCheckbox(Image i0, Image i1)
+	{
+		this.checkbox = true;
+		img = i0;
+		img1 = i1;
+		return this;
+	}
+	
+	public Box invertChecked()
+	{
+		this.checked = !checked;
+		return this;
+	}
+	
+	public boolean isChecked()
+	{
+		return checked;
+	}
+	
+	public Box onlyShowText(boolean b)
+	{
+		this.onlyShowText = b;
+		return this;
+	}
+	
 	/*
 	 * Moves the box a step toward its target position
 	 */
@@ -176,16 +224,27 @@ public class Box {
 		if (visible)
 		{
 			g.setColor(clBox);
-			g.fill3DRect(box.x, box.y, box.width, box.height, true);
+			if (!onlyShowText)
+			{
+				g.fill3DRect(box.x, box.y, box.width, box.height, true);
+			}
 			FontMetrics fm = g.getFontMetrics();
 			g.setColor(clText);
 			//If animation complete draw text
 			if (animate())
 			{
 				g.drawString(text, box.x+(box.width - fm.stringWidth(text))/2, box.y+(box.height)/2+5);
-				if (img!=null && imgVisible)
+				if (!checkbox)
 				{
-					g.drawImage(img, box.x+(box.width-img.getWidth(null))/2, box.y+(box.height-img.getHeight(null))/2, null);
+					if (img!=null && imgVisible)
+					{
+						g.drawImage(img, box.x+(box.width-img.getWidth(null))/2, box.y+(box.height-img.getHeight(null))/2, null);
+					}
+				}
+				else
+				{
+					Image i = (checked) ? img1 : img;
+					g.drawImage(i, box.x+(box.width-img.getWidth(null))/2, box.y+(box.height-img.getHeight(null))/2, null);
 				}
 			}
 		}

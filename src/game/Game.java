@@ -210,6 +210,10 @@ public class Game extends Applet implements Runnable {
 		imgFiles[1] = fp+"logo.png";
 		imgFiles[2] = fp+"coins/mayan0.png";
 		imgFiles[3] = fp+"mayan/block.png";
+		
+		imgFiles[4] = fp+"checkbox_unchecked.png";
+		imgFiles[5] = fp+"checkbox_checked.png";
+		
 		//TODO: Add new graphics here
 	}
 
