@@ -213,6 +213,23 @@ public class Coin {
 		return new Vector2D(x, y);
 	}
 	
+	private Vector2D getIntersectionPoint(Vector2D p0, Vector2D p1, Vector2D q0, Vector2D q1)
+	{
+		float xdiff = (p0.x-p1.x);
+		if (xdiff == 0)
+		{
+			//Line equation is x=p1.x
+		}
+		float m1 = (p0.y-p1.y)/xdiff;
+		float c1 = p0.y - m1*p0.x;
+		
+		float m2 = (q0.y-q1.y)/(q0.x-q1.x);
+		float c2 = q0.y - m1*q0.x;
+		
+		return getIntersectionPoint(m1, c1, m2, c2);
+		
+	}
+	
 	/*
 	 * Checks if this coin has been clicked.
 	 * Returns true if coin has been clicked.
@@ -485,7 +502,51 @@ public class Coin {
 			Graphics2D g2 = (Graphics2D) g;
 			g2.setStroke(new BasicStroke(3));
 			g2.drawLine((int)pos.x, (int)pos.y, (int) mousePos.x, (int) mousePos.y);
+			
+			drawPathProjection(g2);
 		}
 			
+	}
+	
+	private void drawPathProjection(Graphics2D g)
+	{
+		Vector2D tl = new Vector2D(xrangemin, yrangemin);
+		Vector2D bl = new Vector2D(xrangemin, yrangemax);
+		Vector2D tr = new Vector2D(xrangemax, yrangemin);
+		Vector2D br = new Vector2D(xrangemax, yrangemax);
+		
+		
+//		float grad = (pos.y-mousePos.y)/(pos.x-mousePos.x);
+//		float c = pos.y - grad*pos.x;
+
+		//Left side
+		Vector2D l = getIntersectionPoint(tl, bl, pos, mousePos);
+		//Right side
+		Vector2D r = getIntersectionPoint(tr, br, pos, mousePos);
+		//Top side
+		Vector2D t = getIntersectionPoint(tl, tr, pos, mousePos);
+		//Bottom side
+		Vector2D b = getIntersectionPoint(bl, br, pos, mousePos);
+		
+		Vector2D a = null;
+		if (l.x==xrangemin)
+			a = l;
+		else if (r.x==xrangemax)
+			a = r;
+		else if (t.y==yrangemin)
+			a = t;
+		else if (b.y==yrangemax)
+			a = b;
+			
+		//TODO: move elsewhere
+		final float dash1[] = {10.0f};
+    	final BasicStroke dashed =
+	        new BasicStroke(2.0f,
+	                        BasicStroke.CAP_BUTT,
+	                        BasicStroke.JOIN_MITER,
+	                        10.0f, dash1, 0.0f);
+		g.setStroke(dashed);
+		
+		g.drawLine((int)pos.x, (int)pos.y, (int) a.x, (int) a.y);
 	}
 }
