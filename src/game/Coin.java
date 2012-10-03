@@ -261,6 +261,7 @@ public class Coin {
 		this.vel.set(d.multiply(powerConst));
 		//selected = false;
 		powerLineVisible = false;
+		//TODO: If in multiplayer game send vel to server so opponents screen can replicate
 	}
 	
 	

@@ -4,7 +4,6 @@ import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 public class Client {
 
@@ -17,6 +16,8 @@ public class Client {
 	private static Connection connection;
 	public static boolean loggedIn;
 	private static String localUsername;
+	private static String matchUsername;
+	private static int matchRanking;
 	private static String[] localStore;
 	
     public static void startConnection()
@@ -53,8 +54,9 @@ public class Client {
         //Use for testing db functionality
         if (DEBUG)
         {
-        getHighScoreTable();
-//        	tryLogin("Zee", "zee123");
+//        getHighScoreTable();
+        	tryLogin("Zee", "zee123");
+        	matchWithOpponent();
 //       		saveUserData();
 //       		 printLocalStore();
         
@@ -207,7 +209,7 @@ public class Client {
      /*
      * Calculate players rank
      */
-    public static int calculateRank()
+    private static int calculateRank(String uname)
     {
    	  	int rank = -1;
     	Statement statement = null;
@@ -218,9 +220,10 @@ public class Client {
             ResultSet resset = statement.getResultSet();
             while (resset.next())
             {
-            	if (localUsername.equals(resset.getString("Name")))
+            	if (uname.equals(resset.getString("Name")))
             	{
             		rank = resset.getRow();
+            		break;
             	}
             }
             resset.close();
@@ -311,7 +314,7 @@ public class Client {
             	localStore[4] = resset.getString("Draws");
             	localStore[5] = resset.getString("Losses");
             	localStore[6] = resset.getString("LastLogin");
-            	localStore[7] = Integer.toString(Client.calculateRank());
+            	localStore[7] = Integer.toString(Client.calculateRank(localUsername));
             	
 //                System.out.print(resset.getRow());
 				
@@ -398,6 +401,11 @@ public class Client {
     	return localStore[0];
     }
     
+    public static String getOpponentName()
+    {
+    	return matchUsername;
+    }
+    
     public static int getHighscore()
     {
     	return Integer.parseInt(localStore[2]);
@@ -423,5 +431,101 @@ public class Client {
     	return Integer.parseInt(localStore[7]);
     }
     
-   
+    public static int getOpponentRanking()
+    {
+    	return calculateRank(matchUsername);
+    }
+    
+    /*
+     * TODO: This probably needs to be a critical section - need to do some kind of handshaking procedure
+     * Matches local player with another player who is searching for a match
+     */
+    public static boolean matchWithOpponent()
+    {
+    	boolean success = false;
+   	    
+    	//Search for players seeking a match
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute("SELECT * FROM `waiting`");
+            
+            ResultSet resset = statement.getResultSet();
+            //Take the first one if table not empty
+            //TODO: Implement some kind of ordering system so players dont wait indefinately -> use timestamp for each player
+            if (resset.next())
+            {
+            	String uname = resset.getString("Name");
+            	//Remove this player from the waiting table
+            	statement.execute("DELETE FROM `waiting` WHERE Name = '"+uname+"'");
+            	
+            	
+//            	if (!uname.equals(localUsername))
+//            	{
+            		//TODO: do some kind of handshaking voodoo
+            		
+            		//TODO: Set ours and opponents linking bit to 0 (no longer searching)
+            		System.out.println("Matched: "+localUsername+" with "+uname);
+                	success = true;
+                	matchUsername = uname;
+//                	break;
+//            	}
+            }
+            else
+            {
+            	System.out.println("Cannot find opponent, placed "+localUsername+" into waiting table");
+            	//Insert local player into table (waiting for opponent)
+            	statement.executeUpdate("INSERT INTO `waiting` VALUES ('"+localUsername+"')");
+            }
+            resset.close();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+    }
+    
+    /*
+     * Called when player leaves 'find opponent menu'
+     */
+    public static boolean removeFromWaitingTable()
+    {
+		boolean success = false;
+   	    
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute("DELETE FROM `waiting` WHERE Name = '"+localUsername+"'");
+            System.out.println("Removed "+localUsername+" from waiting table");
+            success = true;
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+    }
 }

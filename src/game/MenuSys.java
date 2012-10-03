@@ -96,7 +96,7 @@ public class MenuSys {
 	
 	//Defines menu flow
 	Menu[][] nxtMenu =  { 
-							{Menu.NEW_GAME, Menu.FIND_OPPONENT, Menu.OPTIONS, Menu.CHECK},  //Main menu
+							{Menu.NEW_GAME, Menu.NONE, Menu.OPTIONS, Menu.CHECK},  //Main menu
 							{Menu.NONE, Menu.NONE,Menu.NONE, Menu.MAIN},  //New game
 							{Menu.NONE, Menu.NONE, Menu.NONE, Menu.MAIN},   //Find opponent
 							{Menu.NONE, Menu.NONE, Menu.NONE, Menu.MAIN}, //Options
@@ -223,6 +223,9 @@ public class MenuSys {
 			{
 				case NONE:
 				case MAIN:
+					//When click on find opponent
+					currSubMenu = currMenu;
+					submenuSelected(0);
 				break;
 				case NEW_GAME:
 					switch(i)
@@ -287,6 +290,33 @@ public class MenuSys {
 		//TODO: update positions on subMenuBoxs here
 		switch(currMenu)
 		{
+			case MAIN:
+				//Find opponent
+				if (Client.loggedIn)
+				{
+					if (Client.matchWithOpponent())
+					{
+						int s = 30;
+						int y = (int) (centralBoxSubmenuPos.y+20);
+						subMenuBoxs[1].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x, y)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(Client.getName());
+						subMenuBoxs[2].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x, y+s)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(String.valueOf(Client.getRanking()));
+						subMenuBoxs[3].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+Box.size/2, y+s/2)).setSizeBoth(Box.size, 30).onlyShowText(true).setText("VS");
+						subMenuBoxs[4].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+Box.size, y)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(Client.getOpponentName());
+						subMenuBoxs[5].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+Box.size, y+s)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(String.valueOf(Client.getOpponentRanking()));
+						
+						subMenuBoxs[5].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x, y+4*s)).setSizeBoth(Box.size*2, 30).setText("PLAY");
+					}
+					else
+					{
+						subMenuBoxs[1].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, (int)centralBoxSubmenuPos.y+20)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Waiting for opponent...");
+					}
+				}
+				else
+				{
+					subMenuBoxs[1].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, (int)centralBoxSubmenuPos.y+20)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("You must login before you can find an opponent");
+				}
+				
+			break;
 			case OPTIONS:
 				switch (currSubMenu)
 				{
@@ -394,11 +424,20 @@ public class MenuSys {
 			//No longer draw submenu
 			drawSubmenuScreen = -1;
 			
+			setTextBoxesVisible(false);
+			
 			//Special text cases i.e. depending on logged in/out
 			//TODO: set up arrays for altTxt in different languages
 			if (currSubMenu==Menu.CONNECTIVITY && Client.loggedIn)
 			{
 				subBoxs[0].setText("Sign out");
+			}
+			
+			//If going back from find opponent screen then remove player from waiting table 
+			if (currSubMenu==Menu.MAIN)
+			{
+				//NB Will need to remove this while testing on same PC
+				Client.removeFromWaitingTable();
 			}
 		}
 		else
@@ -553,10 +592,10 @@ public class MenuSys {
 		{
 			drawSubmenuScreen(g);
 		}
-		else
-		{
-			setTextBoxesVisible(false);
-		}
+//		else
+//		{
+//			setTextBoxesVisible(false);
+//		}
 		
 	}
 	
