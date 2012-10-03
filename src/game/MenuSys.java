@@ -304,7 +304,7 @@ public class MenuSys {
 						subMenuBoxs[4].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+Box.size, y)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(Client.getOpponentName());
 						subMenuBoxs[5].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+Box.size, y+s)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(String.valueOf(Client.getOpponentRanking()));
 						
-						subMenuBoxs[5].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x, y+4*s)).setSizeBoth(Box.size*2, 30).setText("PLAY");
+						subMenuBoxs[6].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x, y+4*s)).setSizeBoth(Box.size*2, 30).setText("PLAY");
 					}
 					else
 					{
@@ -444,6 +444,11 @@ public class MenuSys {
 		{
 			switch(currMenu)
 			{
+				case MAIN:
+					//Find opponent 'play' button pressed
+					Client.createNewGame();
+					game.startNewGame();
+				break;
 				case OPTIONS:
 					switch (currSubMenu)
 					{

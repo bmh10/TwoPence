@@ -12,6 +12,7 @@ public class Client {
 	//NB This is actually 1 more than number of db cols as we also store calculated rank locally
 	private static final int DB_NUM_COLS = 8;
 	private static final int DB_HIGHSCORE_DISP_COUNT = 10;
+	private static int GID = 0;
 
 	private static Connection connection;
 	public static boolean loggedIn;
@@ -528,4 +529,46 @@ public class Client {
         
         return success;
     }
+    
+     /*
+     * Adds a new active game to games table
+     */
+    public static boolean createNewGame()
+    {
+		boolean success = false;
+		//TODO: method to generate unique GID
+   	    
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.executeUpdate("INSERT INTO `games` VALUES ('"+GID+"', '"+localUsername+"', '"+matchUsername+"')");
+            System.out.println("Added game to game table: "+GID+++", "+localUsername+", "+matchUsername);
+            success = true;
+            //TODO: probably needs changing - ie what if goes over max size for int
+            GID++;
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+    }
+    
+//    //TODO: probably needs changing - ie what if goes over max size for int
+//    private int generateGID()
+//    {
+//    	return GID++;
+//    }
+//    
 }
