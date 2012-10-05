@@ -5,6 +5,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import org.jasypt.util.password.BasicPasswordEncryptor;
 
 import utils.Vector2D;
 public class Client {
@@ -16,6 +17,7 @@ public class Client {
 	private static final int DB_HIGHSCORE_DISP_COUNT = 10;
 
 	private static Connection connection;
+	private static BasicPasswordEncryptor bpe;
 	public static boolean loggedIn;
 	private static String localUsername;
 	private static String matchUsername;
@@ -58,8 +60,8 @@ public class Client {
         if (DEBUG)
         {
 //        getHighScoreTable();
-        	tryLogin("Zee", "zee123");
-        	matchWithOpponent();
+//        	tryLogin("Zee", "zee123");
+//        	matchWithOpponent();
 //        	matchWithOpponent();
 //       		saveUserData();
 //       		 printLocalStore();
@@ -75,6 +77,7 @@ public class Client {
     	GID = -1;
     	localStore = new String[DB_NUM_COLS];
     	loggedIn = false;
+    	bpe = new BasicPasswordEncryptor();
     	
     	
     	return true;
@@ -105,8 +108,9 @@ public class Client {
                 //If user exists (this check is redundant seen as usernames are unique but best to do for safety
                 if (resset.getString("Name").equals(username))
                 {
-                	//Check password
-                	if (resset.getString("Password").equals(pass))
+                	//Check password (encrypt then check against db)
+                	BasicPasswordEncryptor bpe = new BasicPasswordEncryptor();
+					if (bpe.checkPassword(pass, resset.getString("Password")))
                 	{
                 	    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 						Date date = new Date();
@@ -183,11 +187,13 @@ public class Client {
             {
         		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 				Date date = new Date();
-        		statement.executeUpdate("INSERT INTO players VALUES ('"+username+"','"+pass+"','0', '0', '0', '0', '"+dateFormat.format(date)+"')");
+				
+				String encryptedPass = bpe.encryptPassword(pass);
+        		statement.executeUpdate("INSERT INTO players VALUES ('"+username+"','"+encryptedPass+"','0', '0', '0', '0', '"+dateFormat.format(date)+"')");
         		System.out.println(username+" added to db on "+dateFormat.format(date));
         		//TODO: check that user has actually been inserted into table
         		
-        		//New user made now actually log into account
+        		//New user made, now actually log into account (with non encrypted pass)
         		success = Client.tryLogin(username, pass);
             }
             
