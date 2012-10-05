@@ -262,21 +262,22 @@ public class Coin {
 	public void makeShot()
 	{
 		Vector2D d = new Vector2D(pos.x-mousePos.x, pos.y-mousePos.y);
-		this.vel.set(d.multiply(powerConst));
-		//selected = false;
-		powerLineVisible = false;
 		//TODO: If in multiplayer game send vel to server so opponents screen can replicate
 		if (game.gameType == Game.ONLINE_MULTI)
 		{
 			Client.sendVelocity(d);
 		}
+		this.vel.set(d.multiply(powerConst));
+		//selected = false;
+		powerLineVisible = false;
+		
 	}
 	
 	//TODO: get velocity in db and 
 	public void makeOpponentShot()
 	{
-//		Vector2D d = Client.getVelocity();//  new Vector2D(pos.x-mousePos.x, pos.y-mousePos.y);
-//		this.vel.set(d.multiply(powerConst));
+		Vector2D d = Client.getOpponentVelocity(); //new Vector2D(pos.x-mousePos.x, pos.y-mousePos.y);
+		this.vel.set(d.multiply(powerConst));
 	}
 	
 	public void move(Game game) {

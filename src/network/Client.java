@@ -19,6 +19,7 @@ public class Client {
 	public static boolean loggedIn;
 	private static String localUsername;
 	private static String matchUsername;
+	private static int GID;
 	private static int matchRanking;
 	private static String[] localStore;
 	
@@ -71,6 +72,7 @@ public class Client {
     private static boolean init()
     {
     	localUsername = "";
+    	GID = -1;
     	localStore = new String[DB_NUM_COLS];
     	loggedIn = false;
     	
@@ -569,21 +571,19 @@ public class Client {
         return success;
     }
     
-         /*
-     * Adds a new active game to games table
+    /*
+     * Sends velocity to games table
      */
     public static boolean sendVelocity(Vector2D vel)
     {
 		boolean success = false;
-		String v = String.valueOf(vel.x)+", "+String.valueOf(vel.y);
-		//TODO: find gid
-		int gid = 0;
+		String v = String.valueOf(vel.x)+","+String.valueOf(vel.y);
    	    
     	Statement statement = null;
         try {
             statement = connection.createStatement();
-            statement.executeUpdate("UPDATE `games` SET Velocity = '"+v+"' WHERE gid = '"+gid+"'");
-            System.out.println("Updated velocity in match "+gid+" to "+v);
+            statement.executeUpdate("UPDATE `games` SET Velocity = '"+v+"' WHERE gid = '"+GID+"'");
+            System.out.println("Updated velocity in match "+GID+" to "+v);
             success = true;
         }
         catch (SQLException e) {
@@ -602,6 +602,54 @@ public class Client {
         }
         
         return success;
+    }
+    
+    /*
+     * Gets opponent velocity to games table
+     */
+    public static Vector2D getOpponentVelocity()
+    {
+    	Vector2D res = null;
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute("SELECT Velocity FROM `games` WHERE gid = '"+GID+"'");
+            ResultSet resset = statement.getResultSet();
+
+            if (resset.next())
+            {
+            	String vel = resset.getString("Velocity");
+           		System.out.println("Recieved opponent velocity in match "+GID+": "+vel);
+           		res = parseVelocity(vel);
+        	}
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return res;
+    }
+    
+    /*
+     * Converts velocity in string form into 2d vector required by games
+     */
+    private static Vector2D parseVelocity(String vel)
+    {
+    	String s[];
+    	s = vel.split(",");
+    	return new Vector2D(Float.parseFloat(s[0]), Float.parseFloat(s[1]));
+    	
     }
     
     /*
@@ -641,7 +689,7 @@ public class Client {
                 }
             }
         }
-        
+        Client.GID = GID;
         return GID;
     }
 

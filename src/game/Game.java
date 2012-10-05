@@ -311,6 +311,7 @@ public class Game extends Applet implements Runnable {
 			}
 		}
 		
+		
 		//Check if circle passes through line
 		if (shotMade)
 		{
@@ -437,8 +438,16 @@ public class Game extends Applet implements Runnable {
 			}
 			
 			selCoin.setSelected(true);
+			
 			shotMade = false;
 			collision = false;
+			
+			//TODO: rplayer turn will not work for both players - must be opponent turn (taken from db)
+			if (gameType == ONLINE_MULTI && rPlayerTurn)
+			{
+				selCoin.makeOpponentShot();
+				shotMade = true;
+			}
 		}
 		
 		
