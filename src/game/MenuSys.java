@@ -281,6 +281,7 @@ public class MenuSys {
 		centralBox.setFinalPos(centralBoxSubmenuPos);
 		centralBox.setFinalSize(2*Box.size, 2*Box.size);
 		centralBox.setImageVisible(false);
+		Vector2D p = centralBoxSubmenuPos;
 		
 		//Set all suboxes invisible (except for back button)
 		for (int j = 1; j < NUM_SUB_BOXES; j++)
@@ -325,18 +326,28 @@ public class MenuSys {
 						{
 							//Sound
 							case 0:
-								//drawSound menu();
-								
+								subMenuBoxs[1].setVisible(true).setPosBoth(new Vector2D (p.x+20, p.y+50)).setSizeBoth(Box.iconSize,  Box.iconSize).setToCheckbox(game.imgs[4], game.imgs[5]);
+								subMenuBoxs[2].setVisible(true).setPosBoth(new Vector2D (p.x+2*Box.size-20-Box.iconSize, p.y+50)).setSizeBoth(Box.iconSize,  Box.iconSize).setToCheckbox(game.imgs[4], game.imgs[5]);
+								subMenuBoxs[3].setVisible(true).setPosBoth(new Vector2D (p.x+20, p.y+80)).setSizeBoth(Box.iconSize,  Box.iconSize).onlyShowText(true).setText("ON");
+								subMenuBoxs[4].setVisible(true).setPosBoth(new Vector2D (p.x+2*Box.size-20-Box.iconSize, p.y+80)).setSizeBoth(Box.iconSize,  Box.iconSize).onlyShowText(true).setText("OFF");
+								int n = (game.sound) ? 1 : 2 ;
+									subMenuBoxs[n].invertChecked();
 							break;
 							//Language
 							case 1:
 								//Sets positions of sub menu boxes
-								Vector2D p = centralBoxSubmenuPos;
 								for (int j = 0; j < NUM_LANGUAGES; j++)
 								{
 									subMenuBoxs[j+1].setVisible(true).setText(langs[j]).setSizeBoth(Box.iconSize, Box.iconSize).setPosBoth(new Vector2D(p.x+Box.iconSize+2*((j)%3)*Box.iconSize, p.y+Box.iconSize+2*(j/3)*Box.iconSize));
 								}
-								
+							//Animation
+							case 2:
+								subMenuBoxs[1].setVisible(true).setPosBoth(new Vector2D (p.x+20, p.y+50)).setSizeBoth(Box.iconSize,  Box.iconSize).setToCheckbox(game.imgs[4], game.imgs[5]);
+								subMenuBoxs[2].setVisible(true).setPosBoth(new Vector2D (p.x+2*Box.size-20-Box.iconSize, p.y+50)).setSizeBoth(Box.iconSize,  Box.iconSize).setToCheckbox(game.imgs[4], game.imgs[5]);
+								subMenuBoxs[3].setVisible(true).setPosBoth(new Vector2D (p.x+20, p.y+80)).setSizeBoth(Box.iconSize,  Box.iconSize).onlyShowText(true).setText("ON");
+								subMenuBoxs[4].setVisible(true).setPosBoth(new Vector2D (p.x+2*Box.size-20-Box.iconSize, p.y+80)).setSizeBoth(Box.iconSize,  Box.iconSize).onlyShowText(true).setText("OFF");
+								int m = (game.animation) ? 1 : 2 ;
+									subMenuBoxs[m].invertChecked();
 								
 							break;
 						}
@@ -348,7 +359,6 @@ public class MenuSys {
 						//Sign in
 						case 0:
 							//TODO: Setup login screen w/ tickbox for new users
-							Vector2D p = centralBoxSubmenuPos;
 							
 							textFields[0].setText("username");
 							textFields[0].setBackground(Color.BLUE);
@@ -457,8 +467,21 @@ public class MenuSys {
 							{
 								//Sound
 								case 0:
-									//drawSound menu();
-									
+									switch (i)
+									{
+										case 1:
+											subMenuBoxs[1].invertChecked();
+											subMenuBoxs[2].invertChecked();
+											game.sound = true;
+											SoundManager.unmute();
+										break;
+										case 2:
+											subMenuBoxs[1].invertChecked();
+											subMenuBoxs[2].invertChecked();
+											game.sound = false;
+											SoundManager.mute();
+										break;										
+									}
 								break;
 								//Language
 								case 1:
@@ -473,6 +496,21 @@ public class MenuSys {
 									}
 									
 									changeLanguage();
+								break;
+								//Animation
+								case 2:
+									switch (i)
+									{
+										case 1:
+											subMenuBoxs[1].invertChecked();
+											subMenuBoxs[2].invertChecked();
+											game.animation = true;
+										break;
+										case 2:
+											subMenuBoxs[1].invertChecked();
+											subMenuBoxs[2].invertChecked();
+											game.animation = false;
+									}
 								break;
 							}
 						

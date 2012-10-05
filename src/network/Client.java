@@ -12,7 +12,6 @@ public class Client {
 	//NB This is actually 1 more than number of db cols as we also store calculated rank locally
 	private static final int DB_NUM_COLS = 8;
 	private static final int DB_HIGHSCORE_DISP_COUNT = 10;
-	private static int GID = 0;
 
 	private static Connection connection;
 	public static boolean loggedIn;
@@ -536,16 +535,18 @@ public class Client {
     public static boolean createNewGame()
     {
 		boolean success = false;
-		//TODO: method to generate unique GID
+		int gid = generateGID();
+   	    if (gid == -1)
+   	    {
+   	    	return success;
+   	    }
    	    
     	Statement statement = null;
         try {
             statement = connection.createStatement();
-            statement.executeUpdate("INSERT INTO `games` VALUES ('"+GID+"', '"+localUsername+"', '"+matchUsername+"')");
-            System.out.println("Added game to game table: "+GID+++", "+localUsername+", "+matchUsername);
+            statement.execute("INSERT INTO `games` VALUES ('"+gid+"', '"+localUsername+"', '"+matchUsername+"')");
+            System.out.println("Added game to game table: "+gid+", "+localUsername+", "+matchUsername);
             success = true;
-            //TODO: probably needs changing - ie what if goes over max size for int
-            GID++;
         }
         catch (SQLException e) {
             e.printStackTrace();
@@ -565,10 +566,76 @@ public class Client {
         return success;
     }
     
-//    //TODO: probably needs changing - ie what if goes over max size for int
-//    private int generateGID()
-//    {
-//    	return GID++;
-//    }
-//    
+    /*
+     * Gets highest gid in games table and adds one
+     * TODO: better way of doing this - gids will become 'fragmented' as more people play and quit over time
+     */
+    private static int generateGID()
+    {
+    	int GID = -1;
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute("SELECT gid FROM `games` ORDER BY gid DESC");
+             ResultSet resset = statement.getResultSet();
+             //Get highest gid in table and add 1
+             if (resset.next())
+             {
+             	GID = Integer.parseInt(resset.getString("gid"))+1;
+             }
+             else
+             {
+             	GID = 0;
+             }
+            
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return GID;
+    }
+
+	/*
+	 * Removes game from games table
+	 */
+	public static boolean endGame()
+	{
+		boolean success = false;
+   	    
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute("DELETE FROM `games` WHERE unameL = '"+localUsername+"' OR unameR = '"+localUsername+"'");
+            System.out.println("Removed "+localUsername+" from games table");
+            success = true;
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+	}
 }

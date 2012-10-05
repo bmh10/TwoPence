@@ -504,7 +504,7 @@ public class Coin {
 			g2.setStroke(new BasicStroke(3));
 			g2.drawLine((int)pos.x, (int)pos.y, (int) mousePos.x, (int) mousePos.y);
 			
-			drawPathProjection(g2);
+			//drawPathProjection(g2);
 		}
 			
 	}

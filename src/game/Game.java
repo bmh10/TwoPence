@@ -54,12 +54,14 @@ public class Game extends Applet implements Runnable {
 	Vector2D l1, l2;
 	String hudText;
 	int hudMsgTimer;
+	Box btnQuit;
 	
 	int[] scores = {0, 0};
 	
 	// Player options
 	int numPlayers;
 	boolean sound;
+	boolean animation;
 	boolean mouse;
 	boolean ballTrail;
 	 // difficulty => 0=easy, 1=med, 2=hard
@@ -120,6 +122,7 @@ public class Game extends Applet implements Runnable {
 		hudMsgTimer = 0;
 		
 		sound = true;
+		animation = true;
 		mouse = false;
 		ballTrail = true;
 		showStats = false;		
@@ -165,7 +168,7 @@ public class Game extends Applet implements Runnable {
 		//Bottom bar
 		boundryRects[5] = new Rectangle(rL.x+rL.width, winSize.height-2*goalPostSize, winSize.width-2*goalPostSize, 2*goalPostSize);
 		
-		
+		btnQuit = new Box(new Vector2D(50, 50), "Quit").setSizeBoth(Box.iconSize, Box.iconSize);
 		
 		
 		
@@ -183,6 +186,7 @@ public class Game extends Applet implements Runnable {
 		this.addMouseMotionListener(mouseMoveListener);
 		this.addMouseListener(mouseClickListener);
 		
+		//Start db connection
 		Client.startConnection();
 	}
 	
@@ -252,6 +256,15 @@ public class Game extends Applet implements Runnable {
 		state = PLAYING;
 	}
 	
+	/*
+	 * Returns to menu and removes game from db
+	 */
+	private void quitGame()
+	{
+		state = MENU;
+		//TODO: only need to call this if player has finished multiplayer game
+		Client.endGame();
+	}
 	
 	/*
 	 *  Main game loop 
@@ -899,6 +912,9 @@ public class Game extends Applet implements Runnable {
 				g.fillRect(x, 50,20, 20);
 			}
 			
+			//Draw quit button
+			btnQuit.draw(g);
+			
 			if (paused)
 				centerString(g, g.getFontMetrics(),"PAUSED", 300);
 				
@@ -994,6 +1010,11 @@ public class Game extends Applet implements Runnable {
 					{
 						coins[i].setPowerLineDrawn(true, new Vector2D(e.getX(), e.getY()));
 					}
+				}
+				
+				if (btnQuit.getRect().contains(e.getPoint()))
+				{
+					quitGame();
 				}
 				break;
 			}
