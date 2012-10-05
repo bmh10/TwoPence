@@ -67,12 +67,13 @@ public class Game extends Applet implements Runnable {
 	 // difficulty => 0=easy, 1=med, 2=hard
 	int difficulty;
 	int goalWidth;
+	int gameType;
+	static final int SINGLE_PLY = 0;
+	static final int LOCAL_MULTI = 1;
+	static final int ONLINE_MULTI = 2;
 	
 	
 	// Game states
-	boolean deathMatch;
-	boolean deathMatchWinner;
-	
 	boolean showStats;
 	boolean paused;
 	
@@ -120,6 +121,7 @@ public class Game extends Applet implements Runnable {
 		l2 = new Vector2D(0, 0);
 		hudText = "";
 		hudMsgTimer = 0;
+		gameType = SINGLE_PLY;
 		
 		sound = true;
 		animation = true;
@@ -128,8 +130,6 @@ public class Game extends Applet implements Runnable {
 		showStats = false;		
 		difficulty = 1; // medium
 		pause = medPause;
-		deathMatch = false;
-		deathMatchWinner = false;
 		
 		setBackground(Color.BLACK);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -138,9 +138,9 @@ public class Game extends Applet implements Runnable {
 		menuSys = new MenuSys(this, winSize);
 		goalWidth = winSize.height-8*goalPostSize;
 
-		coins[0] = new Coin(new Vector2D(d.width/2+80, d.height/2), Color.YELLOW).setImage(imgs[2]);
-		coins[1] = new Coin(new Vector2D(d.width/2, d.height/2+40), Color.YELLOW).setImage(imgs[2]);
-		coins[2] = new Coin(new Vector2D(d.width/2, d.height/2-40), Color.YELLOW).setImage(imgs[2]);
+		coins[0] = new Coin(this, new Vector2D(d.width/2+80, d.height/2), Color.YELLOW).setImage(imgs[2]);
+		coins[1] = new Coin(this, new Vector2D(d.width/2, d.height/2+40), Color.YELLOW).setImage(imgs[2]);
+		coins[2] = new Coin(this, new Vector2D(d.width/2, d.height/2-40), Color.YELLOW).setImage(imgs[2]);
 		for (int i = 0; i < coinCount; i++)
 		{
 			coins[i].setRange(0, d.width-1, 0, d.height-1);
@@ -262,8 +262,11 @@ public class Game extends Applet implements Runnable {
 	private void quitGame()
 	{
 		state = MENU;
-		//TODO: only need to call this if player has finished multiplayer game
-		Client.endGame();
+		//Remove game from db if online game
+		if (gameType == ONLINE_MULTI)
+		{
+			Client.endGame();
+		}
 	}
 	
 	/*
@@ -531,8 +534,6 @@ public class Game extends Applet implements Runnable {
 		case 2: diff = "HARD"; break;
 		}
 		String gSpeed = Integer.toString(pause);
-		String gType = (deathMatch) ? "Death Match" : "Classic";
-		String dmWinner = (deathMatchWinner) ? "YES" : "NO";
 		String pause = (paused) ? "YES" : "NO";
 		
 		
@@ -543,14 +544,12 @@ public class Game extends Applet implements Runnable {
 		leftString(g, fm, "Ball coordinates: " + bx + ", " + by, s=space(s)+10);
 		leftString(g, fm, "Ball velocity: " + bvx + ", " + bvy, s=space(s));
 		leftString(g, fm, "Player Options", s=space(s)+10);
-		leftString(g, fm, "Game Type: " + gType, s=space(s)+10);
 		leftString(g, fm, "Sound: " + snd, s=space(s));
 		leftString(g, fm, "Control: " + control, s=space(s));
 		leftString(g, fm, "Wrapping: " + wrp, s=space(s));
 		leftString(g, fm, "Ball Trail: " + btrail, s=space(s));
 		leftString(g, fm, "Difficulty: " + diff, s=space(s));
 		leftString(g, fm, "Game Speed: " + gSpeed, s=space(s));
-		leftString(g, fm, "DeathMatch winner: " + dmWinner, space(s));
 	}
 	
 	
@@ -909,7 +908,30 @@ public class Game extends Applet implements Runnable {
 			{
 				drawIngameScores(g);
 				int x = (!rPlayerTurn) ? 50 : winSize.width-70;
-				g.fillRect(x, 50,20, 20);
+				g.fillRect(x, 50, 20, 20);
+				
+				String lp = "";
+				String rp = "";
+				//Draw player names
+				switch (gameType)
+				{
+					case SINGLE_PLY:
+						String n = Client.getName();
+						lp = (n==null) ? "You" : n ;
+						rp = "CPU";
+					break;
+					case LOCAL_MULTI:
+						lp = "ply1";
+						rp = "ply2";
+					break;
+					case ONLINE_MULTI:
+					//TODO: This will be wrong on other players screen
+						lp = Client.getName();
+						rp = Client.getOpponentName();
+					break;
+				}
+				g.drawString(lp, 50, 50);
+				g.drawString(rp, winSize.width-70, 50);
 			}
 			
 			//Draw quit button

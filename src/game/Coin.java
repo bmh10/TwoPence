@@ -7,6 +7,8 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 
+import network.Client;
+
 import utils.Utils;
 import utils.Vector2D;
 
@@ -34,6 +36,7 @@ public class Coin {
 	private Color color, defColor;
 	private boolean selected, powerLineVisible;
 	private Vector2D mousePos;
+	private Game game;
 	
 	//ip=intersection point
 	public Vector2D ip;
@@ -43,7 +46,8 @@ public class Coin {
 	/*
 	 * Creates a ball at specified position with specified colour
 	 */
-	public Coin(Vector2D p, Color c) {
+	public Coin(Game game, Vector2D p, Color c) {
+		this.game = game;
 		this.pos = p;
 		this.startPos = new Vector2D(pos.x, pos.y);
 		this.size = 50;
@@ -262,9 +266,18 @@ public class Coin {
 		//selected = false;
 		powerLineVisible = false;
 		//TODO: If in multiplayer game send vel to server so opponents screen can replicate
+		if (game.gameType == Game.ONLINE_MULTI)
+		{
+			Client.sendVelocity(d);
+		}
 	}
 	
-	
+	//TODO: get velocity in db and 
+	public void makeOpponentShot()
+	{
+//		Vector2D d = Client.getVelocity();//  new Vector2D(pos.x-mousePos.x, pos.y-mousePos.y);
+//		this.vel.set(d.multiply(powerConst));
+	}
 	
 	public void move(Game game) {
 		// If game not being played cannot move

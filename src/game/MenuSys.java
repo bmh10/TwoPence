@@ -231,8 +231,10 @@ public class MenuSys {
 					switch(i)
 					{
 						case 1:
+							game.gameType = Game.SINGLE_PLY;
 							game.startNewGame(); break;
 						case 2:
+							game.gameType = Game.LOCAL_MULTI;
 							game.startNewGame(); break;
 					}
 				break;
@@ -457,6 +459,7 @@ public class MenuSys {
 				case MAIN:
 					//Find opponent 'play' button pressed
 					Client.createNewGame();
+					game.gameType = Game.ONLINE_MULTI;
 					game.startNewGame();
 				break;
 				case OPTIONS:

@@ -5,9 +5,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
+
+import utils.Vector2D;
 public class Client {
 
-	private static boolean DEBUG = false;
+	private static boolean DEBUG = true;
 
 	//NB This is actually 1 more than number of db cols as we also store calculated rank locally
 	private static final int DB_NUM_COLS = 8;
@@ -57,6 +59,7 @@ public class Client {
 //        getHighScoreTable();
         	tryLogin("Zee", "zee123");
         	matchWithOpponent();
+//        	matchWithOpponent();
 //       		saveUserData();
 //       		 printLocalStore();
         
@@ -511,7 +514,7 @@ public class Client {
             System.out.println("Removed "+localUsername+" from waiting table");
             success = true;
         }
-        catch (SQLException e) {
+        catch (SQLException e) {	
             e.printStackTrace();
         }
         finally {
@@ -544,8 +547,43 @@ public class Client {
     	Statement statement = null;
         try {
             statement = connection.createStatement();
-            statement.execute("INSERT INTO `games` VALUES ('"+gid+"', '"+localUsername+"', '"+matchUsername+"')");
+            statement.execute("INSERT INTO `games` VALUES ('"+gid+"', '"+localUsername+"', '"+matchUsername+"', '0', 'null')");
             System.out.println("Added game to game table: "+gid+", "+localUsername+", "+matchUsername);
+            success = true;
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+    }
+    
+         /*
+     * Adds a new active game to games table
+     */
+    public static boolean sendVelocity(Vector2D vel)
+    {
+		boolean success = false;
+		String v = String.valueOf(vel.x)+", "+String.valueOf(vel.y);
+		//TODO: find gid
+		int gid = 0;
+   	    
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.executeUpdate("UPDATE `games` SET Velocity = '"+v+"' WHERE gid = '"+gid+"'");
+            System.out.println("Updated velocity in match "+gid+" to "+v);
             success = true;
         }
         catch (SQLException e) {
