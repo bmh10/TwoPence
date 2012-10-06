@@ -274,10 +274,15 @@ public class Coin {
 	}
 	
 	//TODO: get velocity in db and 
-	public void makeOpponentShot()
+	public boolean makeOpponentShot()
 	{
 		Vector2D d = Client.getOpponentVelocity(); //new Vector2D(pos.x-mousePos.x, pos.y-mousePos.y);
-		this.vel.set(d.multiply(powerConst));
+		if (d!=null)
+		{
+			this.vel.set(d.multiply(powerConst));
+			return true;
+		}
+		return false;
 	}
 	
 	public void move(Game game) {

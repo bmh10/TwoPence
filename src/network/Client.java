@@ -24,6 +24,9 @@ public class Client {
 	private static int GID;
 	private static int matchRanking;
 	private static String[] localStore;
+	public static boolean waiting;
+	//True if local player is playing from left to right
+	public static boolean localOnLeft;
 	
     public static void startConnection()
     {
@@ -42,12 +45,14 @@ public class Client {
         
         connection = null;
         try {
+        	//TODO: this need changing from localhost to static server ip
             connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/players","root","");
         }
         catch (SQLException e) {
             e.printStackTrace();
             return;
         }
+        
         
         try {
             System.out.println("Established connection to " + connection.getMetaData().getURL());
@@ -78,6 +83,8 @@ public class Client {
     	localStore = new String[DB_NUM_COLS];
     	loggedIn = false;
     	bpe = new BasicPasswordEncryptor();
+    	waiting = false;
+    	localOnLeft = true;
     	
     	
     	return true;
@@ -487,6 +494,7 @@ public class Client {
             	System.out.println("Cannot find opponent, placed "+localUsername+" into waiting table");
             	//Insert local player into table (waiting for opponent)
             	statement.executeUpdate("INSERT INTO `waiting` VALUES ('"+localUsername+"')");
+            	Client.waiting = true;
             }
             resset.close();
         }
@@ -520,6 +528,7 @@ public class Client {
             statement = connection.createStatement();
             statement.execute("DELETE FROM `waiting` WHERE Name = '"+localUsername+"'");
             System.out.println("Removed "+localUsername+" from waiting table");
+            Client.waiting = false;
             success = true;
         }
         catch (SQLException e) {	
@@ -540,6 +549,59 @@ public class Client {
         return success;
     }
     
+    
+    /*
+     * Ideally opponent should signal to us that match has begun via server
+     * for now we just poll the server.
+     */
+    public static boolean hasMatchStarted()
+    {
+    	boolean started = false;
+   	    
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute("SELECT gid, unameL, unameR FROM `games` WHERE unameL = '"+localUsername+"' OR unameR = '"+localUsername+"'");
+            
+            ResultSet resset = statement.getResultSet();
+            //If not empty result -> match must have started
+            if (resset.next())
+            {
+            	//Get opponents user name
+            	String oppUname = resset.getString("unameR");
+            	Client.localOnLeft = true;
+            	if (oppUname.equals(Client.localUsername))
+            	{
+            		oppUname = resset.getString("unameL");
+            		Client.localOnLeft = false;
+            	}
+            	String gid = resset.getString("gid");
+            	
+            	System.out.println("Match ("+gid+") started between "+resset.getString("unameL")+" and "+resset.getString("unameR"));
+            	Client.waiting = false;
+            	matchUsername = oppUname;
+            	Client.GID = Integer.parseInt(gid);
+            	started = true;
+            }
+        }
+        catch (SQLException e) {	
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return started;
+    }
+    
      /*
      * Adds a new active game to games table
      */
@@ -557,6 +619,7 @@ public class Client {
             statement = connection.createStatement();
             statement.execute("INSERT INTO `games` VALUES ('"+gid+"', '"+localUsername+"', '"+matchUsername+"', '0', 'null')");
             System.out.println("Added game to game table: "+gid+", "+localUsername+", "+matchUsername);
+            Client.localOnLeft = true;
             success = true;
         }
         catch (SQLException e) {
@@ -648,7 +711,7 @@ public class Client {
     }
     
     /*
-     * Converts velocity in string form into 2d vector required by games
+     * Converts velocity in string form into 2d vector required by game
      */
     private static Vector2D parseVelocity(String vel)
     {

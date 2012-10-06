@@ -448,7 +448,6 @@ public class MenuSys {
 			//If going back from find opponent screen then remove player from waiting table 
 			if (currSubMenu==Menu.MAIN)
 			{
-				//NB Will need to remove this while testing on same PC
 				Client.removeFromWaitingTable();
 			}
 		}

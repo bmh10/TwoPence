@@ -441,12 +441,32 @@ public class Game extends Applet implements Runnable {
 			
 			shotMade = false;
 			collision = false;
-			
+		}
+		
 			//TODO: rplayer turn will not work for both players - must be opponent turn (taken from db)
-			if (gameType == ONLINE_MULTI && rPlayerTurn)
+			if (gameType == ONLINE_MULTI && allZero && ((Client.localOnLeft && rPlayerTurn) || (!Client.localOnLeft && !rPlayerTurn)))// && rPlayerTurn)
 			{
-				selCoin.makeOpponentShot();
-				shotMade = true;
+				Coin selCoin = coins[0];
+				for (int i = 1; i < coinCount; i++)
+				{
+					if (coins[i].isSelected())
+					{
+						selCoin = coins[i];
+						break;
+					}
+				}
+				shotMade = selCoin.makeOpponentShot();
+			}
+		
+		
+		if (Client.waiting)
+		{
+			//Poll server to see if match has been found, if has then start game
+			if (Client.hasMatchStarted())
+			{
+				//Game in db has already been created by opponent
+				gameType = Game.ONLINE_MULTI;
+				startNewGame();
 			}
 		}
 		
@@ -935,8 +955,8 @@ public class Game extends Applet implements Runnable {
 					break;
 					case ONLINE_MULTI:
 					//TODO: This will be wrong on other players screen
-						lp = Client.getName();
-						rp = Client.getOpponentName();
+						lp = (Client.localOnLeft) ? Client.getName() : Client.getOpponentName();
+						rp =  (Client.localOnLeft) ?  Client.getOpponentName() : Client.getName();
 					break;
 				}
 				g.drawString(lp, 50, 50);
