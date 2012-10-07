@@ -27,6 +27,7 @@ public class Client {
 	public static boolean waiting;
 	//True if local player is playing from left to right
 	public static boolean localOnLeft;
+	public static boolean isLeftPlayersTurn;
 	
     public static void startConnection()
     {
@@ -85,6 +86,7 @@ public class Client {
     	bpe = new BasicPasswordEncryptor();
     	waiting = false;
     	localOnLeft = true;
+    	isLeftPlayersTurn = false;
     	
     	
     	return true;
@@ -617,7 +619,7 @@ public class Client {
     	Statement statement = null;
         try {
             statement = connection.createStatement();
-            statement.execute("INSERT INTO `games` VALUES ('"+gid+"', '"+localUsername+"', '"+matchUsername+"', '0', 'null')");
+            statement.execute("INSERT INTO `games` VALUES ('"+gid+"', '"+localUsername+"', '"+matchUsername+"', '0', 'null', '')");
             System.out.println("Added game to game table: "+gid+", "+localUsername+", "+matchUsername);
             Client.localOnLeft = true;
             success = true;
@@ -708,6 +710,142 @@ public class Client {
         }
         
         return res;
+    }
+    
+    public static String getCoinPositions()
+    {
+    	String res = null;
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute("SELECT positions FROM `games` WHERE gid = '"+GID+"'");
+            ResultSet resset = statement.getResultSet();
+
+            if (resset.next())
+            {
+            	String poss = resset.getString("positions");
+           		System.out.println("Recieved positions in match "+GID+": "+poss);
+           		res = poss;
+        	}
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return res;
+    }
+    
+    public static boolean sendCoinPositions(String poss)
+    {
+    	boolean success = false;
+   	    
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.executeUpdate("UPDATE `games` SET positions = '"+poss+"' WHERE gid = '"+GID+"'");
+            System.out.println("Updated coins possitions in match "+GID+" to "+poss);
+            success = true;
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+    }
+    
+    /*
+     * Returns true if it is the local players turn
+     */
+    public static boolean isOurTurn()
+    {
+    	return ((Client.localOnLeft && Client.isLeftPlayersTurn) || (!Client.localOnLeft && !Client.isLeftPlayersTurn));
+    }
+    
+    /*
+     * Switches turns in db and also updates isLeftPlayersTurn variable
+     */
+    public static boolean switchTurns()
+    {
+    	boolean success = false;
+    	isLeftPlayersTurn = !isLeftPlayersTurn;
+    	int i = (isLeftPlayersTurn) ? 1 : 0;
+   	    
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.executeUpdate("UPDATE `games` SET lplayerTurn = '"+i+"' WHERE gid = '"+GID+"'");
+            System.out.println("Updated player turn in match "+GID+" to (1=left, 0=right) "+isLeftPlayersTurn);
+            success = true;
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+    }
+    
+     /*
+     * Sets velocity to null
+     */
+    public static boolean wipeVelocity()
+    {
+    	boolean success = false;
+    	Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.executeUpdate("UPDATE `games` SET Velocity = '"+null+"' WHERE gid = '"+GID+"'");
+            System.out.println("Wiped velocity");
+            success = true;
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (statement != null)
+            {
+                try {
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
     }
     
     /*

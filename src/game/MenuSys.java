@@ -459,6 +459,7 @@ public class MenuSys {
 					//Find opponent 'play' button pressed
 					Client.createNewGame();
 					game.gameType = Game.ONLINE_MULTI;
+					game.rPlayerTurn = true;
 					game.startNewGame();
 				break;
 				case OPTIONS:

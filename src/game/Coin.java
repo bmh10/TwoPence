@@ -280,6 +280,7 @@ public class Coin {
 		if (d!=null)
 		{
 			this.vel.set(d.multiply(powerConst));
+			Client.wipeVelocity();
 			return true;
 		}
 		return false;

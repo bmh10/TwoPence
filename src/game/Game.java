@@ -187,6 +187,7 @@ public class Game extends Applet implements Runnable {
 		this.addMouseListener(mouseClickListener);
 		
 		//Start db connection
+		//TODO: do this on login not on game load
 		Client.startConnection();
 	}
 	
@@ -311,7 +312,6 @@ public class Game extends Applet implements Runnable {
 			}
 		}
 		
-		
 		//Check if circle passes through line
 		if (shotMade)
 		{
@@ -321,11 +321,6 @@ public class Game extends Applet implements Runnable {
 			
 			for (int i = 0; i < coinCount; i++)
 			{
-//				if (!coins[i].getVel().isZero())
-//				{
-//					allZero = false;
-//				}
-				
 				if (!coins[i].isSelected())
 				{
 					if (p1 == null)
@@ -382,7 +377,7 @@ public class Game extends Applet implements Runnable {
 					//Goal to right player
 					scores[1]++;
 					hudText = "GOAL!";
-					rPlayerTurn = !rPlayerTurn;
+					switchTurns();
 					startNewGame();
 				}
 				else if (rR.contains(selCoin.getPos().x, selCoin.getPos().y))
@@ -390,7 +385,7 @@ public class Game extends Applet implements Runnable {
 					//Goal to left player
 					scores[0]++;
 					hudText = "GOAL!";
-					rPlayerTurn = !rPlayerTurn;
+					switchTurns();
 					startNewGame();
 				}
 			}
@@ -411,7 +406,7 @@ public class Game extends Applet implements Runnable {
 			
 			if (!anotherShot)// && !bonusShot)
 			{
-				rPlayerTurn = !rPlayerTurn;
+				switchTurns();
 				if (!collision)
 				{
 					//If no collisions (&& have not earned another shot) other player gets a penalty
@@ -441,10 +436,24 @@ public class Game extends Applet implements Runnable {
 			
 			shotMade = false;
 			collision = false;
+			
+			//After shot made in online multiplayer mode check coin positions are correct
+			if (gameType == ONLINE_MULTI)
+			{
+				//ie they just made a shot
+				if (Client.isOurTurn())
+				{
+					checkCoinPositions();
+				}
+				//ie we just made a shot
+				else
+				{
+					Client.sendCoinPositions(getLocalCoinPositions());
+				}
+			}
 		}
 		
-			//TODO: rplayer turn will not work for both players - must be opponent turn (taken from db)
-			if (gameType == ONLINE_MULTI && allZero && ((Client.localOnLeft && rPlayerTurn) || (!Client.localOnLeft && !rPlayerTurn)))// && rPlayerTurn)
+			if (gameType == ONLINE_MULTI && allZero && !Client.isOurTurn())
 			{
 				Coin selCoin = coins[0];
 				for (int i = 1; i < coinCount; i++)
@@ -469,23 +478,23 @@ public class Game extends Applet implements Runnable {
 				startNewGame();
 			}
 		}
-		
-		
 
 		
-		//if(ballTrail)
-			//makeBallTrail(50);
-		
-		if (state != PLAYING) {
-			//recalibratePaddles();
-//			if (state != WAITING) {
-				titleUnderlineParticles(500);
-//				if(state != CHECK)
-//					deathMatchWinner = false;
-//			}
+		if (state != PLAYING) 
+		{
+			titleUnderlineParticles(500);
 		}
 		
 
+	}
+	
+	private void switchTurns()
+	{
+		rPlayerTurn = !rPlayerTurn;
+		if (gameType == ONLINE_MULTI)
+		{
+			Client.switchTurns();
+		}
 	}
 	
 	/*
@@ -635,6 +644,75 @@ public class Game extends Applet implements Runnable {
 //			else if (state == MODEMENU)
 //				openModeMenu(g, fm, 300);
 //		}
+	}
+	
+	/*
+	 * Gets the coins positions and appends them to a string which can be send to the server
+	 */
+	public String getLocalCoinPositions()
+	{
+		StringBuilder sb = new StringBuilder();
+		for (Coin c : coins)
+		{
+			sb.append(c.getPos().x+","+c.getPos().y+",");
+		}
+		return sb.toString();
+	}
+	
+	/*
+	 * Checks that the local coin positions are same as opponents,
+	 * if not then amends them to be same as on server
+	 */
+	public boolean checkCoinPositions()
+	{
+		boolean res = true;
+		int[] cps = getCoinPositions();
+		int[] localcps = new int[coins.length*2];
+		
+		int j = 0;
+		for (int i=0; i < localcps.length; i+=2)
+		{
+			localcps[i]   = (int) coins[j].getPos().x;
+			localcps[i+1] = (int) coins[j].getPos().y;
+			j++;
+		}
+		
+		//Do check
+		for (int i=0; i < cps.length; i++)
+		{
+			if (localcps[i] != cps[i])
+			{
+				res = false;
+				break;
+			}
+		}
+		
+		//Amend local coins positions if required
+		if (!res)
+		{
+			int i = -1;
+			for (Coin c : coins)
+			{
+				c.setPos(new Vector2D(cps[++i], cps[++i]));
+			}
+		}
+		
+		return res;
+	}
+	
+	private int[] getCoinPositions()
+	{
+		String str = Client.getCoinPositions();
+		String[] strs = str.split(",");
+		int[] cps = new int[strs.length];
+		
+		int i = -1;
+		for (String s : strs)
+		{
+			cps[++i] = Integer.parseInt(s);
+		}
+		
+		return cps;
 	}
 	
 	/* 
@@ -1076,13 +1154,16 @@ public class Game extends Applet implements Runnable {
 			switch(state) {
 			case PLAYING:
 				//Makes shot with selected coin on mouse release
-				for (int i = 0; i < coinCount; i++)
+				if (gameType != ONLINE_MULTI || (gameType == ONLINE_MULTI && ((rPlayerTurn && !Client.localOnLeft) || ((!rPlayerTurn && Client.localOnLeft)))))
 				{
-					if (coins[i].isSelected() && coins[i].powerLineDrawn())
+					for (int i = 0; i < coinCount; i++)
 					{
-						coins[i].makeShot();
-						shotMade = true;
-						break;
+						if (coins[i].isSelected() && coins[i].powerLineDrawn())
+						{
+							coins[i].makeShot();
+							shotMade = true;
+							break;
+						}
 					}
 				}
 				break;
