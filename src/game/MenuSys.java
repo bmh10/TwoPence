@@ -10,7 +10,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
@@ -76,12 +75,6 @@ public class MenuSys {
 							{"Sign in", "Stats", "Friends", "Scoreboard"},  //Connectivity
 					  	  };
 	
-//	//Options submenu text
-//	String[][] englishOpt =  { 
-//								{"ON", "OFF", "", ""},  //Sound
-//								{"ENGLISH", "FRENCH", "GERMAN", ""},  //Language
-//				  	  		 };
-					  
 	String[][] french =  { 
 							{"NOUVEAU JEU", "TROUVER ADVERSAIRE", "OPTIONS DE", "QUITTER"},  //Main menu
 							{"", "SEUL JOUEUR", "MULTIJOUEUR EN LOCAL", "RETOUR"},  //New game
@@ -127,30 +120,6 @@ public class MenuSys {
 		game.addMouseMotionListener(menuMoveListener);
 	}
 	
-//	/*
-//	 * Loads graphics files using file names stored in imgFiles array
-//	 */
-//	private void loadGraphics()
-//	{
-//		imgs = new Image[NUM_IMAGES];
-//		imgFiles = new String[NUM_IMAGES];
-//		setFileNames();
-//		for (int i = 0; i < NUM_IMAGES; i++)
-//		{
-//			imgs[i] = game.getImage(game.getDocumentBase(), imgFiles[i]);
-//		}
-//	}
-//	
-//	/*
-//	 * Sets all graphics file names
-//	 */
-//	private void setFileNames()
-//	{
-//		imgFiles[0] = "title.png";
-//		imgFiles[1] = "logo.png";
-//		//TODO: Add new graphics here
-//	}
-	
 	/*
 	 * Setups up menus boxes in correct positions
 	 */
@@ -186,21 +155,16 @@ public class MenuSys {
 			game.add(textFields[i]);
 		}
 		
-
 		//Set positions to end in after animation
-		
 		boxs[0].setFinalPos(new Vector2D((winSize.width-Box.size)/2,   (winSize.height-Box.size*3)/2+yoffset));
 		boxs[1].setFinalPos(new Vector2D((winSize.width-Box.size*3)/2, (winSize.height-Box.size)/2+yoffset));
 		boxs[2].setFinalPos(new Vector2D((winSize.width+Box.size)/2,   (winSize.height-Box.size)/2+yoffset));
 		boxs[3].setFinalPos(new Vector2D((winSize.width-Box.size)/2,   (winSize.height+Box.size)/2+yoffset));
 		
-		
-		
 		//SubMenuBoxes[0] is always back button
 		Vector2D p = centralBoxSubmenuPos = new Vector2D(boxs[0].getFinalPos().x-Box.size/2, boxs[0].getFinalPos().y+Box.size/2);
 		subMenuBoxs[0] = new Box(new Vector2D(p.x+2*Box.size/2-50, p.y+ 2*Box.size-30), "BACK")
 			.setSizeBoth(100, 30).setColor(Color.BLACK, Color.WHITE);
-		
 	}
 	
 	private void changeMenu(int i)
@@ -734,29 +698,6 @@ public class MenuSys {
 			textFields[i].setVisible(vis);
 		}
 	}
-	
-//	private void drawSubmenuSound(Graphics g)
-//	{
-//		//TODO: using subMenuBoxs[1+]
-//	}
-//	
-//	private void drawSubmenuLanguage(Graphics g)
-//	{
-//		//TODO: using subMenuBoxs[1+] make into 1 for loop
-//		for (int i = 1; i < 7; i++)
-//		{
-//			subMenuBoxs[i].draw(g);
-//		}
-//	}
-//	
-//	private void drawSubmenuLogin(Graphics g)
-//	{
-//		//TODO: using subMenuBoxs[1+] make into 1 for loop
-//		for (int i = 1; i < 7; i++)
-//		{
-//			subMenuBoxs[i].draw(g);
-//		}
-//	}
 	
 	/*
 	 * Draws menu header (logo and particles)

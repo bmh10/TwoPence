@@ -12,7 +12,7 @@ public class Start {
 	
 	public static void main (String[] args) {
 		Frame myFrame = new AppFrame();
-		myFrame.setBounds(10, 10, Game.WIN_WIDTH+WIDTH_OFFSET, Game.WIN_HEIGHT+HEIGHT_OFFSET);
+		myFrame.setBounds(0, 0, Game.WIN_WIDTH+WIDTH_OFFSET, Game.WIN_HEIGHT+HEIGHT_OFFSET);
 		myFrame.setVisible(true);
 	}
 }

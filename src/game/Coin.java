@@ -41,8 +41,6 @@ public class Coin {
 	//ip=intersection point
 	public Vector2D ip;
 	
-	BallSmokeParticle b;
-	
 	/*
 	 * Creates a ball at specified position with specified colour
 	 */

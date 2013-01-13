@@ -43,8 +43,6 @@ public class Game extends Applet implements Runnable {
 	Thread engine = null;
 	Timer swingTimer;
 	Coin[] coins = new Coin[coinCount];
-	ArrayList<BallSmokeParticle> ballSmokeParticles;
-	ArrayList<BallSmokeParticle> underlineParticles;
 	
 	Image[] imgs;
 	String[] imgFiles;
@@ -183,8 +181,6 @@ public class Game extends Applet implements Runnable {
 		
 		btnQuit = new Box(new Vector2D(50, 50), "Quit").setSizeBoth(Box.iconSize, Box.iconSize);
 		
-		ballSmokeParticles = new ArrayList<BallSmokeParticle>();
-		underlineParticles = new ArrayList<BallSmokeParticle>();
 
 		
 //		SoundManager.init();
@@ -217,7 +213,7 @@ public class Game extends Applet implements Runnable {
 		System.out.println("BASE_PATH: "+BASE_PATH);
 	}
 	
-		/*
+	/*
 	 * Loads graphics files using file names stored in imgFiles array
 	 */
 	private void loadGraphics()
@@ -252,18 +248,6 @@ public class Game extends Applet implements Runnable {
 		//TODO: Add new graphics here
 	}
 
-
-	/*
-	 * Updates players' scores
-	 */
-	public void updateScore(int p) {
-//		if (p==0)
-//			lplayer.incScore();
-//		else
-//			rplayer.incScore();
-	}
-
-	
 	public void startNewGame()
 	{
 		//Set starting position
@@ -508,14 +492,6 @@ public class Game extends Applet implements Runnable {
 				startNewGame();
 			}
 		}
-
-		
-		if (state != PLAYING) 
-		{
-			titleUnderlineParticles(500);
-		}
-		
-
 	}
 	
 	private void switchTurns()
@@ -575,8 +551,6 @@ public class Game extends Applet implements Runnable {
 
 		String time = Long.toString(System.currentTimeMillis() - initialTime);
 
-		String rpx, rpy, lpx, lpy;
-		
 		String bx = Integer.toString( (int)coins[0].getPos().x);
 		String by = Integer.toString( (int)coins[0].getPos().y);
 		String bvx = Integer.toString( (int)coins[0].getVel().x);
@@ -593,7 +567,6 @@ public class Game extends Applet implements Runnable {
 		}
 		String snd = (sound) ? "ON" : "OFF";
 		String control = (mouse) ? "MOUSE" : "KEYS";
-		String wrp = (Player.getWrap()) ? "ON" : "OFF";
 		String btrail = (ballTrail) ? "ON" : "OFF";
 		String diff = null;
 		switch(difficulty) {
@@ -614,7 +587,6 @@ public class Game extends Applet implements Runnable {
 		leftString(g, fm, "Player Options", s=space(s)+10);
 		leftString(g, fm, "Sound: " + snd, s=space(s));
 		leftString(g, fm, "Control: " + control, s=space(s));
-		leftString(g, fm, "Wrapping: " + wrp, s=space(s));
 		leftString(g, fm, "Ball Trail: " + btrail, s=space(s));
 		leftString(g, fm, "Difficulty: " + diff, s=space(s));
 		leftString(g, fm, "Game Speed: " + gSpeed, s=space(s));
@@ -745,176 +717,6 @@ public class Game extends Applet implements Runnable {
 		return cps;
 	}
 	
-	/* 
-	 * Draws game main menu 
-	 */
-	public void openMainMenu(Graphics g, FontMetrics fm, int s) {
-//		centerString(g, fm, "1. Single Player", s);
-//		centerString(g, fm, "2. Two Player", s=space(s));
-//		centerString(g, fm, "3. Options", s=space(s));
-//		centerString(g, fm, "4. Quit", space(s));
-	}
-	
-	/*
-	 * Creates particle space used to underline the main title
-	 */
-	public void titleUnderlineParticles(int numParticles) {
-	
-	//TODO: Turned particles off for now, do something with them later
-		
-//		// Keep number of particles constant
-//		if(underlineParticles.size()>numParticles)
-//			underlineParticles.remove(0);
-//
-//		// Make particle offset random
-//		int areax = 300;
-//		int areay = 50;
-//		int randx = (int) (Math.random()*areax);
-//		int randy = (int) (Math.random()*areay);
-//
-//		// Make the particles stay within specified area 
-//		Point p = new Point((winSize.width - areax)/2 + randx, 230 - randy);
-//		BallSmokeParticle b = new BallSmokeParticle(p);
-//		underlineParticles.add(b);
-//		
-//		for(int i = 0; i<numParticles/2; i++)
-//			underlineParticles.get(i).setColor(Color.YELLOW);
-	}
-	
-	/*
-	 * Creates ball particle trail during play
-	 */
-	public void makeBallTrail(int numParticles) {
-		// Keep number of particles constant
-		if(ballSmokeParticles.size()>numParticles)
-			ballSmokeParticles.remove(0);
-
-		// Make particle offset random
-		int randx = (int) (Math.random()*20);
-		int randy = (int) (Math.random()*20);
-
-		// make the particles stay behind the ball direction of movement within a band
-		Point p = new Point((int)(coins[0].getPos().x - coins[0].getVel().x*coins[0].getSize()/2 - coins[0].getVel().x*randx) , (int)(coins[0].getPos().y - coins[0].getVel().y*coins[0].getSize()/2 - coins[0].getVel().y*randy));
-		BallSmokeParticle b = new BallSmokeParticle(p);
-		ballSmokeParticles.add(b);
-
-		
-		for(int i = 0; i<20; i++)
-			ballSmokeParticles.get(i).setColor(Color.RED);
-	}
-		
-	
-	/*
-	 * Draws game mode menu
-	 */
-	public void openModeMenu(Graphics g, FontMetrics fm, int s) {
-//		centerString(g, fm, "1. Classic", s);
-//		centerString(g, fm, "2. Death Match", s=space(s));
-//		centerString(g, fm, "3. Back", space(s));
-	}
-	
-	/*
-	 * Draws game options menu
-	 */
-	public void openOptionsMenu(Graphics g, FontMetrics fm, int l) {
-//		String s, c, d, p, t, o;
-//		if (sound) s = "ON";
-//		else s = "OFF";
-//		
-//		if (mouse) c = "MOUSE";
-//		else c = "KEYS";
-//		
-//		switch(difficulty) {
-//		case 0: d = "EASY"; break;
-//		case 2: d = "HARD"; break;
-//		default: d = "MEDIUM";
-//		}
-//		
-//		if(Player.getWrap()) p = "ON";
-//		else p = "OFF";
-//
-//		if(ballTrail) t = "ON";
-//		else t = "OFF";
-//
-//		
-//		centerString(g, fm, "1. Game Info", l);
-//		centerString(g, fm, "2. Sound  " + s , l=space(l));
-//		centerString(g, fm, "3. Controller  " + c , l=space(l));
-//		centerString(g, fm, "4. Difficulty  " + d , l=space(l));
-//		centerString(g, fm, "5. Paddle Wrapping  " + p , l=space(l));
-//		centerString(g, fm, "6. Ball Trail  " + t , l=space(l));
-//		centerString(g, fm, "7. Game Orientation  " , l=space(l));
-//		centerString(g, fm, "8. Back", space(l));
-	}
-	
-	/*
-	 * Draws game info
-	 */
-	public void openGameInfo(Graphics g, FontMetrics fm, int s) {
-		
-//		// Paragraph about game, background info, modes and controls
-//		centerString(g, fm, "An emulation of an old classic with a few extras", s);
-//		centerString(g, fm, "Go to the options menu to adjust game settings", s=space(s));
-//		centerString(g, fm, "Please send any questions or comments to bensblogx@gmail.com", s=space(s));
-//		centerString(g, fm, "Controls for horiontal play:", s=space(s)+20);
-//		centerString(g, fm, "Right player: LEFT/RIGHT", s=space(s));
-//		centerString(g, fm, "Left player: A/S", s=space(s));
-//		centerString(g, fm, "Controls for vertical play:", s=space(s)+20);
-//		centerString(g, fm, "Right player: UP/DOWN", s=space(s));
-//		centerString(g, fm, "Left player: A/Z", s=space(s));
-//		centerString(g, fm, "Press P during play to pause the game", s=space(s)+20);
-//		centerString(g, fm, "Press BACKSPACE at any time for game stats", s=space(s)+20);
-//		
-//		centerString(g, fm, "Press ENTER to go back", s=space(s)+20);
-	}
-
-	/*
-	 * Draws checker screen (checks if user want to exit)
-	 */
-	public void openCheck(Graphics g, FontMetrics fm) {
-//		centerString(g, fm, "Are you sure?", 270);
-//		centerString(g, fm, "Y/N", 320);
-	}
-	
-	/*
-	 * Displays the scores of both players and also checks for a winner in a death match
-	 */
-	public void displayScores(Graphics g) {
-//		g.setFont(Fonts.scorefont);
-//		g.setColor(Color.YELLOW);
-//		FontMetrics fm = g.getFontMetrics();
-//		String rscore = Integer.toString(scores[1]);
-//		String lscore = Integer.toString(scores[0]);
-//		centerString(g, fm, "Score" , 100);
-//		centerString(g, fm, lscore + "    " + rscore , 200);
-//		g.setFont(Fonts.smallfont);
-//		fm = g.getFontMetrics();
-//		if (rplayer.getScore() == 0 && lplayer.getScore() == 0) {
-//			if (deathMatch)
-//				centerString(g, fm, "This is a Death Match: your paddle size will decrease if you lose a point" , 200);
-//			centerString(g, fm, "You can change your control device in the options menu" , 230);
-//			centerString(g, fm, "Press the up key or click the mouse to begin" , 260);
-//		}
-//		else {
-//			if (deathMatch) {
-//				if(rplayer.getLength() <= 0) {
-//					deathMatchWinner = true;
-//					centerString(g, fm, "Red player is the winner" , 200);
-//				}
-//				else if(lplayer.getLength() <= 0) {
-//					deathMatchWinner = true;
-//					centerString(g, fm, "Blue player is the winner" , 200);
-//				}
-//				if(deathMatchWinner) {
-//					centerString(g, fm, "Press the up key or click the mouse to go back to main menu" , 250);
-//					return;
-//				}
-//			}
-			// If no death match winner or in classic game
-//			centerString(g, fm, "Press the up key or click the mouse to continue" , 200);
-//			centerString(g, fm, "Press escape to go back to the main menu" , 250);
-//		}
-	}
 	
 	public void drawIngameScores(Graphics g) {
 		g.setFont(Fonts.scorefont);
@@ -946,7 +748,6 @@ public class Game extends Applet implements Runnable {
 				g.drawImage(imgs[3], r.x+i*bw, r.y, null);
 			}
 		}
-	
 	}
 	
 	/*
@@ -1046,17 +847,6 @@ public class Game extends Applet implements Runnable {
 					g.drawLine((int)selCoin.ip.x, (int)selCoin.ip.y, (int) selCoin.getPos().x, (int) selCoin.getPos().y);
 			}
 			
-			
-			
-			if (ballTrail && state == PLAYING) {
-				for (int i = 0; i < ballSmokeParticles.size(); i++)
-				{
-					BallSmokeParticle particle = ballSmokeParticles.get(i);
-					if (particle != null)
-						particle.draw(g);
-				}
-			}
-			
 			if (coins[0].inPlay)
 			{
 				drawIngameScores(g);
@@ -1107,17 +897,10 @@ public class Game extends Applet implements Runnable {
 			
 		}
 
-		if (showStats)
+		if (showStats) {
 			displayStats(g, 150);
-
-		if (state != PLAYING) {
-			for (int i = 0; i < underlineParticles.size(); i++)
-			{
-				BallSmokeParticle particle = underlineParticles.get(i);
-				if (particle != null)
-					particle.draw(g);
-			}
 		}
+
 	}
 
 	/*
@@ -1133,12 +916,11 @@ public class Game extends Applet implements Runnable {
 	/*
 	 * Stops the current game thread
 	 */
-	@SuppressWarnings("deprecation")
 	public void stop() {
-		if (engine != null && engine.isAlive())
-			engine.stop();
+		if (engine != null && engine.isAlive()) {
+			engine.interrupt();
+		}
 		engine = null;
-		
 		Log.close();
 	}
 	

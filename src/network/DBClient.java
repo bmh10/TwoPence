@@ -1,5 +1,7 @@
 package network;
 
+import game.Log;
+
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -19,7 +21,6 @@ public class DBClient {
 	private static String localUsername;
 	private static String matchUsername;
 	private static int GID;
-	private static int matchRanking;
 	private static String[] localStore;
 	public static boolean waiting;
 	//True if local player is playing from left to right
@@ -123,7 +124,6 @@ public class DBClient {
                 	{
                 		System.out.println("Login failed - incorrect password"); 
                 	}
-                
                 }                
             }
             else
@@ -198,34 +198,23 @@ public class DBClient {
     	Statement statement = null;
         try {
             statement = con.createStatement();
-            statement.execute("SELECT Name FROM `players` ORDER BY Highscore DESC");
+            statement.execute("SELECT username FROM `players` ORDER BY highscore DESC");
             
             ResultSet resset = statement.getResultSet();
             while (resset.next())
             {
-            	if (uname.equals(resset.getString("Name")))
+            	if (uname.equals(resset.getString("username")))
             	{
             		rank = resset.getRow();
             		break;
             	}
             }
             resset.close();
+            statement.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
         return rank;
     }
     
@@ -240,33 +229,22 @@ public class DBClient {
     	Statement statement = null;
         try {
             statement = con.createStatement();
-            statement.execute("SELECT Name, Highscore FROM `players` ORDER BY Highscore DESC");
+            statement.execute("SELECT username, highscore FROM `players` ORDER BY highscore DESC");
             
             ResultSet resset = statement.getResultSet();
             while (resset.next() && i <  DB_HIGHSCORE_DISP_COUNT)
             {
             	i++;
-            	hsTable.put(resset.getString("Name"), Integer.parseInt(resset.getString("Highscore")));
+            	hsTable.put(resset.getString("username"), Integer.parseInt(resset.getString("highscore")));
             	
-                System.out.println(resset.getRow()+", "+resset.getString("Name")+", "+Integer.parseInt(resset.getString("Highscore")));
+                System.out.println(resset.getRow()+", "+resset.getString("username")+", "+Integer.parseInt(resset.getString("highscore")));
             }
             resset.close();
+            statement.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
         return hsTable;
     }
     
@@ -331,14 +309,14 @@ public class DBClient {
     	Statement statement = null;
         try {
             statement = con.createStatement();
-            statement.execute("SELECT Name, Password FROM players WHERE Name = '"+localUsername+"'");
+            statement.execute("SELECT username FROM players WHERE username = '"+localUsername+"'");
             
             ResultSet resset = statement.getResultSet();
             //Assuming only one row for a username (therefore use 'if' not 'while'
             if (resset.next())
             {
         		//Update user data in db from local store
-        		statement.executeUpdate("UPDATE players SET Name = '"+localStore[0]+"', Password = '"+localStore[1]+"', Highscore = '"+localStore[2]+"', Wins = '"+localStore[3]+"', Draws = '"+localStore[4]+"', Losses = '"+localStore[5]+"', LastLogin = '"+localStore[6]+"' WHERE Name = '"+localUsername+"'");
+        		statement.executeUpdate("UPDATE players SET highscore = '"+localStore[1]+"', wdl = '"+localStore[2]+"', LastLogin = '"+localStore[3]+"' WHERE username = '"+localUsername+"'");
         		success = true;
         		System.out.println("Local store saved to db");
             }
@@ -347,22 +325,11 @@ public class DBClient {
             	System.out.print("Cannot save to db");
             }
             resset.close();
+            statement.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
         return success;
     }
     
@@ -389,22 +356,23 @@ public class DBClient {
     
     public static int getHighscore()
     {
-    	return Integer.parseInt(localStore[2]);
+    	return Integer.parseInt(localStore[1]);
     }
     
     public static int[] getWDL()
     {
     	int[] wdl = new int[3];
+    	String[] s = localStore[3].split("-");
     	for (int i = 0; i < 3; i++)
     	{
-    		wdl[i] = Integer.parseInt(localStore[3+i]);
+    		wdl[i] = Integer.parseInt(s[i]);
     	}
     	return wdl;
     }
     
     public static String getLastLogin()
     {
-    	return localStore[6];
+    	return localStore[3];
     }
     
     public static int getRanking()
@@ -438,7 +406,7 @@ public class DBClient {
             {
             	String uname = resset.getString("Name");
             	//Remove this player from the waiting table
-            	statement.execute("DELETE FROM `waiting` WHERE Name = '"+uname+"'");
+            	statement.execute("DELETE FROM `waiting` WHERE username = '"+uname+"'");
             	
             	
 //            	if (!uname.equals(localUsername))
@@ -460,22 +428,12 @@ public class DBClient {
             	DBClient.waiting = true;
             }
             resset.close();
+            statement.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
+                    
         return success;
     }
     
@@ -489,26 +447,15 @@ public class DBClient {
     	Statement statement = null;
         try {
             statement = con.createStatement();
-            statement.execute("DELETE FROM `waiting` WHERE Name = '"+localUsername+"'");
+            statement.execute("DELETE FROM `waiting` WHERE username = '"+localUsername+"'");
             System.out.println("Removed "+localUsername+" from waiting table");
             DBClient.waiting = false;
             success = true;
+            statement.close();
         }
         catch (SQLException e) {	
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
         return success;
     }
     
@@ -524,44 +471,32 @@ public class DBClient {
     	Statement statement = null;
         try {
             statement = con.createStatement();
-            statement.execute("SELECT gid, unameL, unameR FROM `games` WHERE unameL = '"+localUsername+"' OR unameR = '"+localUsername+"'");
+            statement.execute("SELECT gid, usernameL, usernameR FROM `games` WHERE usernameL = '"+localUsername+"' OR usernameR = '"+localUsername+"'");
             
             ResultSet resset = statement.getResultSet();
             //If not empty result -> match must have started
             if (resset.next())
             {
             	//Get opponents user name
-            	String oppUname = resset.getString("unameR");
+            	String oppUname = resset.getString("usernameR");
             	DBClient.localOnLeft = true;
             	if (oppUname.equals(DBClient.localUsername))
             	{
-            		oppUname = resset.getString("unameL");
+            		oppUname = resset.getString("usernameL");
             		DBClient.localOnLeft = false;
             	}
             	String gid = resset.getString("gid");
             	
-            	System.out.println("Match ("+gid+") started between "+resset.getString("unameL")+" and "+resset.getString("unameR"));
+            	Log.print("Match ("+gid+") started between "+resset.getString("usernameL")+" and "+resset.getString("usernameR"));
             	DBClient.waiting = false;
             	matchUsername = oppUname;
             	DBClient.GID = Integer.parseInt(gid);
             	started = true;
             }
-        }
-        catch (SQLException e) {	
+            statement.close();
+        } catch (SQLException e) {	
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
         return started;
     }
     
@@ -581,25 +516,14 @@ public class DBClient {
         try {
             statement = con.createStatement();
             statement.execute("INSERT INTO `games` VALUES ('"+gid+"', '"+localUsername+"', '"+matchUsername+"', '0', 'null', '')");
-            System.out.println("Added game to game table: "+gid+", "+localUsername+", "+matchUsername);
+            Log.print("Added game to game table: "+gid+", "+localUsername+", "+matchUsername);
             DBClient.localOnLeft = true;
             success = true;
+            statement.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
         return success;
     }
     
@@ -614,25 +538,14 @@ public class DBClient {
     	Statement statement = null;
         try {
             statement = con.createStatement();
-            statement.executeUpdate("UPDATE `games` SET Velocity = '"+v+"' WHERE gid = '"+GID+"'");
-            System.out.println("Updated velocity in match "+GID+" to "+v);
+            statement.executeUpdate("UPDATE `games` SET velocity = '"+v+"' WHERE gid = '"+GID+"'");
+            Log.print("Updated velocity in match "+GID+" to "+v);
             success = true;
+            statement.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
         return success;
     }
     
@@ -645,7 +558,7 @@ public class DBClient {
     	Statement statement = null;
         try {
             statement = con.createStatement();
-            statement.execute("SELECT Velocity FROM `games` WHERE gid = '"+GID+"'");
+            statement.execute("SELECT velocity FROM `games` WHERE gid = '"+GID+"'");
             ResultSet resset = statement.getResultSet();
 
             if (resset.next())
@@ -688,22 +601,11 @@ public class DBClient {
            		System.out.println("Recieved positions in match "+GID+": "+poss);
            		res = poss;
         	}
+            statement.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
         return res;
     }
     
@@ -717,22 +619,11 @@ public class DBClient {
             statement.executeUpdate("UPDATE `games` SET positions = '"+poss+"' WHERE gid = '"+GID+"'");
             System.out.println("Updated coins possitions in match "+GID+" to "+poss);
             success = true;
+            statement.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
         return success;
     }
     
@@ -759,22 +650,11 @@ public class DBClient {
             statement.executeUpdate("UPDATE `games` SET lplayerTurn = '"+i+"' WHERE gid = '"+GID+"'");
             System.out.println("Updated player turn in match "+GID+" to (1=left, 0=right) "+isLeftPlayersTurn);
             success = true;
+            statement.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
         return success;
     }
     
@@ -790,22 +670,11 @@ public class DBClient {
             statement.executeUpdate("UPDATE `games` SET Velocity = '"+null+"' WHERE gid = '"+GID+"'");
             System.out.println("Wiped velocity");
             success = true;
+            statement.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
         return success;
     }
     
@@ -842,20 +711,10 @@ public class DBClient {
              	GID = 0;
              }
             
+             statement.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
-        }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
         DBClient.GID = GID;
         return GID;
@@ -871,25 +730,14 @@ public class DBClient {
     	Statement statement = null;
         try {
             statement = con.createStatement();
-            statement.execute("DELETE FROM `games` WHERE unameL = '"+localUsername+"' OR unameR = '"+localUsername+"'");
+            statement.execute("DELETE FROM `games` WHERE usernameL = '"+localUsername+"' OR usernameR = '"+localUsername+"'");
             System.out.println("Removed "+localUsername+" from games table");
             success = true;
+            statement.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
-        finally {
-            if (statement != null)
-            {
-                try {
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        
         return success;
 	}
 }
