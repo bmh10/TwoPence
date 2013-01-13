@@ -9,11 +9,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.net.URL;
 import java.util.ArrayList;
 
+import javax.imageio.ImageIO;
 import javax.swing.Timer;
 
-import network.Client;
+import network.DBClient;
 
 import utils.Fonts;
 import utils.Vector2D;
@@ -25,8 +27,16 @@ import utils.Vector2D;
 @SuppressWarnings("serial")
 public class Game extends Applet implements Runnable {
 
-	private final int NUM_IMAGES = 10;
+	public static int WIN_WIDTH;
+	public static int WIN_HEIGHT;
+	
+	// Used to draw updates off screen before displaying to user (combat flickering screen)
+	private Image offScreenImage;
+	private Graphics offScreenGraphics;
+	
+	private final int NUM_IMAGES = 6;
 	private final int HUD_MSG_MAX_TIME = 150;
+	public static String BASE_PATH;
 	
 	boolean debug = false; 
 
@@ -35,9 +45,7 @@ public class Game extends Applet implements Runnable {
 	Coin[] coins = new Coin[coinCount];
 	ArrayList<BallSmokeParticle> ballSmokeParticles;
 	ArrayList<BallSmokeParticle> underlineParticles;
-	Dimension winSize;
 	
-	Image dbimage;
 	Image[] imgs;
 	String[] imgFiles;
 	SoundManager backingTrack;
@@ -99,6 +107,8 @@ public class Game extends Applet implements Runnable {
 	public static final int hardPause = 5;
 	int pause;
 	
+	public Game() {}
+	
 	public String getAppletInfo() {
 		return "TwoPence by Ben Homer";
 	}
@@ -107,6 +117,7 @@ public class Game extends Applet implements Runnable {
 	 * Initialises pong game
 	 */
 	public void init() {
+		setupUserPath();
 		initialTime = System.currentTimeMillis();
 		loadGraphics();
 		state = MENU;
@@ -134,9 +145,11 @@ public class Game extends Applet implements Runnable {
 		setBackground(Color.BLACK);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setSize(dim.width - 10, dim.height - 110);
-		Dimension d = winSize = this.getSize();
-		menuSys = new MenuSys(this, winSize);
-		goalWidth = winSize.height-8*goalPostSize;
+		Dimension d = this.getSize();
+		WIN_WIDTH = d.width;
+		WIN_HEIGHT = d.height;
+		menuSys = new MenuSys(this, d);
+		goalWidth = WIN_HEIGHT-8*goalPostSize;
 
 		coins[0] = new Coin(this, new Vector2D(d.width/2+80, d.height/2), Color.YELLOW).setImage(imgs[2]);
 		coins[1] = new Coin(this, new Vector2D(d.width/2, d.height/2+40), Color.YELLOW).setImage(imgs[2]);
@@ -146,13 +159,13 @@ public class Game extends Applet implements Runnable {
 			coins[i].setRange(0, d.width-1, 0, d.height-1);
 		}
 		
-		this.goalPostLT = new Vector2D(goalPostSize, winSize.height/2 - goalWidth/2);
-		this.goalPostLB = new Vector2D(goalPostSize, winSize.height/2 + goalWidth/2);
-		this.goalPostRT = new Vector2D(winSize.width-goalPostSize*2, winSize.height/2 - goalWidth/2);
-		this.goalPostRB = new Vector2D(winSize.width-goalPostSize*2, winSize.height/2 + goalWidth/2);
+		this.goalPostLT = new Vector2D(goalPostSize, WIN_HEIGHT/2 - goalWidth/2);
+		this.goalPostLB = new Vector2D(goalPostSize, WIN_HEIGHT/2 + goalWidth/2);
+		this.goalPostRT = new Vector2D(WIN_WIDTH-goalPostSize*2, WIN_HEIGHT/2 - goalWidth/2);
+		this.goalPostRB = new Vector2D(WIN_WIDTH-goalPostSize*2, WIN_HEIGHT/2 + goalWidth/2);
 		
 		rL = new Rectangle(0, (int)goalPostLT.y, 2*goalPostSize, goalWidth);
-		rR = new Rectangle(winSize.width-2*goalPostSize, (int)goalPostLT.y, 2*goalPostSize, goalWidth);
+		rR = new Rectangle(WIN_WIDTH-2*goalPostSize, (int)goalPostLT.y, 2*goalPostSize, goalWidth);
 		
 		this.boundryRects = new Rectangle[6];
 		//Top left
@@ -160,24 +173,21 @@ public class Game extends Applet implements Runnable {
 		//Bottom left
 		boundryRects[1] = new Rectangle(rL.x, rL.y+goalWidth, 2*goalPostSize, 4*goalPostSize);
 		//Top right
-		boundryRects[2] = new Rectangle(winSize.width-2*goalPostSize, 0, 2*goalPostSize, 4*goalPostSize);
+		boundryRects[2] = new Rectangle(WIN_WIDTH-2*goalPostSize, 0, 2*goalPostSize, 4*goalPostSize);
 		//Bottom right
 		boundryRects[3] = new Rectangle(rR.x, rR.y+goalWidth, 2*goalPostSize, 4*goalPostSize);
 		//Top bar
-		boundryRects[4] = new Rectangle(rL.x+rL.width, 0, winSize.width-2*goalPostSize, 2*goalPostSize);
+		boundryRects[4] = new Rectangle(rL.x+rL.width, 0, WIN_WIDTH-2*goalPostSize, 2*goalPostSize);
 		//Bottom bar
-		boundryRects[5] = new Rectangle(rL.x+rL.width, winSize.height-2*goalPostSize, winSize.width-2*goalPostSize, 2*goalPostSize);
+		boundryRects[5] = new Rectangle(rL.x+rL.width, WIN_HEIGHT-2*goalPostSize, WIN_WIDTH-2*goalPostSize, 2*goalPostSize);
 		
 		btnQuit = new Box(new Vector2D(50, 50), "Quit").setSizeBoth(Box.iconSize, Box.iconSize);
-		
-		
 		
 		ballSmokeParticles = new ArrayList<BallSmokeParticle>();
 		underlineParticles = new ArrayList<BallSmokeParticle>();
 
 		
-		dbimage = createImage(d.width, d.height);
-		SoundManager.init();
+//		SoundManager.init();
 		backingTrack = SoundManager.selectRandomBackgroundTrack();
 		Fonts.initFonts();
 		
@@ -188,7 +198,23 @@ public class Game extends Applet implements Runnable {
 		
 		//Start db connection
 		//TODO: do this on login not on game load
-		Client.startConnection();
+		DBClient.startConnection();
+	}
+	
+	/*
+	 * Setups up BASE_PATH so application is not machine or directory dependent.
+	 */
+	private void setupUserPath() {
+		URL location = this.getClass().getProtectionDomain().getCodeSource().getLocation();
+		String fullpath = location.getFile().replace("\\", "/");
+		String[] sp = fullpath.split("/");
+		StringBuilder path = new StringBuilder();
+		for (int i=0; i < sp.length; i++) {
+			path.append(sp[i]+"/");
+			if (sp[i].equals("TwoPence")) break;
+		}
+		BASE_PATH = path.toString();
+		System.out.println("BASE_PATH: "+BASE_PATH);
 	}
 	
 		/*
@@ -196,13 +222,17 @@ public class Game extends Applet implements Runnable {
 	 */
 	private void loadGraphics()
 	{
-		imgs = new Image[NUM_IMAGES];
 		imgFiles = new String[NUM_IMAGES];
+		imgs = new Image[imgFiles.length];
 		setFileNames();
-		for (int i = 0; i < NUM_IMAGES; i++)
-		{
-			imgs[i] = getImage(getDocumentBase(), imgFiles[i]);
-		}
+		try {
+			for (int i = 0; i < imgs.length; i++)
+			{
+				URL url = new URL(imgFiles[i]);
+				Log.print("Loading: "+url);
+				imgs[i] = ImageIO.read(url);
+			}
+		} catch (Exception e) {e.printStackTrace();}
 	}
 	
 	/*
@@ -210,7 +240,7 @@ public class Game extends Applet implements Runnable {
 	 */
 	private void setFileNames()
 	{
-		String fp = "images/";
+		String fp = "file://"+BASE_PATH+"src/res/images/";
 		imgFiles[0] = fp+"title.png";
 		imgFiles[1] = fp+"logo.png";
 		imgFiles[2] = fp+"coins/mayan0.png";
@@ -238,7 +268,7 @@ public class Game extends Applet implements Runnable {
 	{
 		//Set starting position
 		float n = (rPlayerTurn) ? 80 : -80;
-		coins[0].setStartPos(new Vector2D(winSize.width/2+n, winSize.height/2));
+		coins[0].setStartPos(new Vector2D(WIN_WIDTH/2+n, WIN_HEIGHT/2));
 		
 		for (int i = 0; i < coinCount; i++)
 		{
@@ -266,7 +296,7 @@ public class Game extends Applet implements Runnable {
 		//Remove game from db if online game
 		if (gameType == ONLINE_MULTI)
 		{
-			Client.endGame();
+			DBClient.endGame();
 		}
 	}
 	
@@ -441,19 +471,19 @@ public class Game extends Applet implements Runnable {
 			if (gameType == ONLINE_MULTI)
 			{
 				//ie they just made a shot
-				if (Client.isOurTurn())
+				if (DBClient.isOurTurn())
 				{
 					checkCoinPositions();
 				}
 				//ie we just made a shot
 				else
 				{
-					Client.sendCoinPositions(getLocalCoinPositions());
+					DBClient.sendCoinPositions(getLocalCoinPositions());
 				}
 			}
 		}
 		
-			if (gameType == ONLINE_MULTI && allZero && !Client.isOurTurn())
+			if (gameType == ONLINE_MULTI && allZero && !DBClient.isOurTurn())
 			{
 				Coin selCoin = coins[0];
 				for (int i = 1; i < coinCount; i++)
@@ -468,10 +498,10 @@ public class Game extends Applet implements Runnable {
 			}
 		
 		
-		if (Client.waiting)
+		if (DBClient.waiting)
 		{
 			//Poll server to see if match has been found, if has then start game
-			if (Client.hasMatchStarted())
+			if (DBClient.hasMatchStarted())
 			{
 				//Game in db has already been created by opponent
 				gameType = Game.ONLINE_MULTI;
@@ -493,7 +523,7 @@ public class Game extends Applet implements Runnable {
 		rPlayerTurn = !rPlayerTurn;
 		if (gameType == ONLINE_MULTI)
 		{
-			Client.switchTurns();
+			DBClient.switchTurns();
 		}
 	}
 	
@@ -595,14 +625,14 @@ public class Game extends Applet implements Runnable {
 	 * Draws and centers a string on the game screen at the specified y-position
 	 */
 	private void centerString(Graphics g, FontMetrics fm, String str, int ypos) {
-		g.drawString(str, (winSize.width - fm.stringWidth(str))/2, ypos);
+		g.drawString(str, (WIN_WIDTH - fm.stringWidth(str))/2, ypos);
 	}
 	
 	/*
 	 * Draws a string on the left side of the game screen at the specified y-position
 	 */
 	private void leftString(Graphics g, FontMetrics fm, String str, int ypos) {
-		g.drawString(str, (winSize.width)/8, ypos);
+		g.drawString(str, (WIN_WIDTH)/8, ypos);
 	}
 	
 	/*
@@ -702,7 +732,7 @@ public class Game extends Applet implements Runnable {
 	
 	private int[] getCoinPositions()
 	{
-		String str = Client.getCoinPositions();
+		String str = DBClient.getCoinPositions();
 		String[] strs = str.split(",");
 		int[] cps = new int[strs.length];
 		
@@ -920,12 +950,28 @@ public class Game extends Applet implements Runnable {
 	}
 	
 	/*
-	 * Updates graphics every step
+	 * Draw to back-buffer to stop flickering
 	 */
-	public void update(Graphics realg) {
-		Graphics g = dbimage.getGraphics();
+	 public final synchronized void update(Graphics g) {
+			Dimension d = getSize();
+			if((offScreenImage == null) || (d.width != WIN_WIDTH) || (d.height != WIN_HEIGHT)) {
+				offScreenImage = createImage(d.width, d.height);
+				WIN_WIDTH = d.width;
+				WIN_HEIGHT = d.height;
+				offScreenGraphics = offScreenImage.getGraphics();
+			}
+			offScreenGraphics.clearRect(0, 0, d.width, d.height);
+			draw(offScreenGraphics);
+			paint(offScreenGraphics);
+			g.drawImage(offScreenImage, 0, 0, null);
+	}
+	
+	/*
+	 * Draws graphics every step
+	 */
+	public void draw(Graphics g) {
 		g.setColor(getBackground());
-		g.fillRect(0, 0, winSize.width, winSize.height);
+		g.fillRect(0, 0, WIN_WIDTH, WIN_HEIGHT);
 		g.setColor(getForeground());
 		
 		if (state==MENU) //!coins[0].inPlay) {
@@ -1014,7 +1060,7 @@ public class Game extends Applet implements Runnable {
 			if (coins[0].inPlay)
 			{
 				drawIngameScores(g);
-				int x = (!rPlayerTurn) ? 50 : winSize.width-70;
+				int x = (!rPlayerTurn) ? 50 : WIN_WIDTH-70;
 				g.fillRect(x, 50, 20, 20);
 				
 				String lp = "";
@@ -1023,7 +1069,7 @@ public class Game extends Applet implements Runnable {
 				switch (gameType)
 				{
 					case SINGLE_PLY:
-						String n = Client.getName();
+						String n = DBClient.getName();
 						lp = (n==null) ? "You" : n ;
 						rp = "CPU";
 					break;
@@ -1033,12 +1079,12 @@ public class Game extends Applet implements Runnable {
 					break;
 					case ONLINE_MULTI:
 					//TODO: This will be wrong on other players screen
-						lp = (Client.localOnLeft) ? Client.getName() : Client.getOpponentName();
-						rp =  (Client.localOnLeft) ?  Client.getOpponentName() : Client.getName();
+						lp = (DBClient.localOnLeft) ? DBClient.getName() : DBClient.getOpponentName();
+						rp =  (DBClient.localOnLeft) ?  DBClient.getOpponentName() : DBClient.getName();
 					break;
 				}
 				g.drawString(lp, 50, 50);
-				g.drawString(rp, winSize.width-70, 50);
+				g.drawString(rp, WIN_WIDTH-70, 50);
 			}
 			
 			//Draw quit button
@@ -1051,7 +1097,7 @@ public class Game extends Applet implements Runnable {
 			if (!hudText.equals(""))
 			{
 				hudMsgTimer++;
-				centerString(g, g.getFontMetrics(), hudText, winSize.height-75);
+				centerString(g, g.getFontMetrics(), hudText, WIN_HEIGHT-75);
 			}
 			if (hudMsgTimer > HUD_MSG_MAX_TIME)
 			{
@@ -1072,7 +1118,6 @@ public class Game extends Applet implements Runnable {
 					particle.draw(g);
 			}
 		}
-		realg.drawImage(dbimage, 0, 0, this);
 	}
 
 	/*
@@ -1093,6 +1138,8 @@ public class Game extends Applet implements Runnable {
 		if (engine != null && engine.isAlive())
 			engine.stop();
 		engine = null;
+		
+		Log.close();
 	}
 	
 	/*
@@ -1154,7 +1201,7 @@ public class Game extends Applet implements Runnable {
 			switch(state) {
 			case PLAYING:
 				//Makes shot with selected coin on mouse release
-				if (gameType != ONLINE_MULTI || (gameType == ONLINE_MULTI && ((rPlayerTurn && !Client.localOnLeft) || ((!rPlayerTurn && Client.localOnLeft)))))
+				if (gameType != ONLINE_MULTI || (gameType == ONLINE_MULTI && ((rPlayerTurn && !DBClient.localOnLeft) || ((!rPlayerTurn && DBClient.localOnLeft)))))
 				{
 					for (int i = 0; i < coinCount; i++)
 					{

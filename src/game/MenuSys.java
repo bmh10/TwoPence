@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
-import network.Client;
+import network.DBClient;
 
 import utils.Fonts;
 import utils.Vector2D;
@@ -295,17 +295,17 @@ public class MenuSys {
 		{
 			case MAIN:
 				//Find opponent
-				if (Client.loggedIn)
+				if (DBClient.loggedIn)
 				{
-					if (Client.matchWithOpponent())
+					if (DBClient.matchWithOpponent())
 					{
 						int s = 30;
 						int y = (int) (centralBoxSubmenuPos.y+20);
-						subMenuBoxs[1].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x, y)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(Client.getName());
-						subMenuBoxs[2].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x, y+s)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(String.valueOf(Client.getRanking()));
+						subMenuBoxs[1].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x, y)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(DBClient.getName());
+						subMenuBoxs[2].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x, y+s)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(String.valueOf(DBClient.getRanking()));
 						subMenuBoxs[3].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+Box.size/2, y+s/2)).setSizeBoth(Box.size, 30).onlyShowText(true).setText("VS");
-						subMenuBoxs[4].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+Box.size, y)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(Client.getOpponentName());
-						subMenuBoxs[5].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+Box.size, y+s)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(String.valueOf(Client.getOpponentRanking()));
+						subMenuBoxs[4].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+Box.size, y)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(DBClient.getOpponentName());
+						subMenuBoxs[5].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+Box.size, y+s)).setSizeBoth(Box.size, 30).onlyShowText(true).setText(String.valueOf(DBClient.getOpponentRanking()));
 						
 						subMenuBoxs[6].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x, y+4*s)).setSizeBoth(Box.size*2, 30).setText("PLAY");
 					}
@@ -378,18 +378,18 @@ public class MenuSys {
 						break;
 						//Player stats
 						case 1:
-						if (Client.loggedIn)
+						if (DBClient.loggedIn)
 						{
 							int s = 30;
 							int y = (int) (centralBoxSubmenuPos.y+20);
-							int[] wdl = Client.getWDL();
-							subMenuBoxs[1].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Player name: "+Client.getName());
-							subMenuBoxs[2].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Highscore: "+Client.getHighscore());
+							int[] wdl = DBClient.getWDL();
+							subMenuBoxs[1].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Player name: "+DBClient.getName());
+							subMenuBoxs[2].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Highscore: "+DBClient.getHighscore());
 							subMenuBoxs[3].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Wins: "+wdl[0]);
 							subMenuBoxs[4].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Draws: "+wdl[1]);
 							subMenuBoxs[5].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Losses: "+wdl[2]);
-							subMenuBoxs[6].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Last login: "+Client.getLastLogin());
-							subMenuBoxs[7].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Ranking: "+Client.getRanking());
+							subMenuBoxs[6].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Last login: "+DBClient.getLastLogin());
+							subMenuBoxs[7].setVisible(true).setPosBoth(new Vector2D ((int)centralBoxSubmenuPos.x+20, y+=s)).setSizeBoth(Box.size*2-40, 30).onlyShowText(true).setText("Ranking: "+DBClient.getRanking());
 						}
 						else
 						{
@@ -401,7 +401,7 @@ public class MenuSys {
 						break;
 						//Highscores/rankings
 						case 3:
-							LinkedHashMap<String, Integer> hsTable = Client.getHighScoreTable();
+							LinkedHashMap<String, Integer> hsTable = DBClient.getHighScoreTable();
 							Set<String> names = hsTable.keySet();
 							int n = 0;
 							int s = 20;
@@ -440,7 +440,7 @@ public class MenuSys {
 			
 			//Special text cases i.e. depending on logged in/out
 			//TODO: set up arrays for altTxt in different languages
-			if (currSubMenu==Menu.CONNECTIVITY && Client.loggedIn)
+			if (currSubMenu==Menu.CONNECTIVITY && DBClient.loggedIn)
 			{
 				subBoxs[0].setText("Sign out");
 			}
@@ -448,7 +448,7 @@ public class MenuSys {
 			//If going back from find opponent screen then remove player from waiting table 
 			if (currSubMenu==Menu.MAIN)
 			{
-				Client.removeFromWaitingTable();
+				DBClient.removeFromWaitingTable();
 			}
 		}
 		else
@@ -457,7 +457,7 @@ public class MenuSys {
 			{
 				case MAIN:
 					//Find opponent 'play' button pressed
-					Client.createNewGame();
+					DBClient.createNewGame();
 					game.gameType = Game.ONLINE_MULTI;
 					game.rPlayerTurn = true;
 					game.startNewGame();
@@ -533,12 +533,12 @@ public class MenuSys {
 										case 2:
 											if (subMenuBoxs[1].isChecked())
 											{
-												if (Client.newUser(textFields[0].getText(), textFields[1].getText()))
+												if (DBClient.newUser(textFields[0].getText(), textFields[1].getText()))
 													handleSubMenuClick(0);
 											}
 											else
 											{
-												if (Client.tryLogin(textFields[0].getText(), textFields[1].getText()))
+												if (DBClient.tryLogin(textFields[0].getText(), textFields[1].getText()))
 													handleSubMenuClick(0);
 											}
 										break;
@@ -773,9 +773,9 @@ public class MenuSys {
 		fm = g.getFontMetrics();
 		g.drawString("by Ben Homer", 10, winSize.height-20);
 		
-		if (Client.loggedIn)
+		if (DBClient.loggedIn)
 		{
-			g.drawString("Logged in as: "+Client.getName(), 10, 30);
+			g.drawString("Logged in as: "+DBClient.getName(), 10, 30);
 		}
 	}
 	

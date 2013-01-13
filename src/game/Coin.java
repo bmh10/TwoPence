@@ -7,7 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 
-import network.Client;
+import network.DBClient;
 
 import utils.Utils;
 import utils.Vector2D;
@@ -265,7 +265,7 @@ public class Coin {
 		//TODO: If in multiplayer game send vel to server so opponents screen can replicate
 		if (game.gameType == Game.ONLINE_MULTI)
 		{
-			Client.sendVelocity(d);
+			DBClient.sendVelocity(d);
 		}
 		this.vel.set(d.multiply(powerConst));
 		//selected = false;
@@ -276,11 +276,11 @@ public class Coin {
 	//TODO: get velocity in db and 
 	public boolean makeOpponentShot()
 	{
-		Vector2D d = Client.getOpponentVelocity(); //new Vector2D(pos.x-mousePos.x, pos.y-mousePos.y);
+		Vector2D d = DBClient.getOpponentVelocity(); //new Vector2D(pos.x-mousePos.x, pos.y-mousePos.y);
 		if (d!=null)
 		{
 			this.vel.set(d.multiply(powerConst));
-			Client.wipeVelocity();
+			DBClient.wipeVelocity();
 			return true;
 		}
 		return false;

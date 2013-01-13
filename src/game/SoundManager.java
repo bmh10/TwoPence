@@ -7,7 +7,6 @@ import javax.sound.sampled.*;
 	/*
 	 * Sound Effect manager
 	 */
-
 	public enum SoundManager {
 		SONAR("sonar1.wav"),
 		INTRO("menu1.wav"),
@@ -17,6 +16,7 @@ import javax.sound.sampled.*;
 		BACK2("back2.wav"),
 		BACK3("back3.wav");
 
+		private static final String FILE_PATH = "src/res/sound/";
 		private static int volume = 3;
 		private Clip clip;
 		
@@ -24,7 +24,7 @@ import javax.sound.sampled.*;
 		   SoundManager(String soundFileName) {
 		      try {
 		         // Use URL (instead of File) to read from disk and JAR.
-		         URL url = this.getClass().getClassLoader().getResource(soundFileName);
+		         URL url = new URL("file://"+Game.BASE_PATH+FILE_PATH+soundFileName);
 		         // Set up an audio input stream piped from the sound file.
 		         AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(url);
 		         // Get a clip resource.
