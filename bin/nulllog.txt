@@ -1,0 +1,12 @@
+file:/C:/Users/BenLaptop/newworkspace/TwoPence/bin/
+file:/C:/Users/BenLaptop/newworkspace/TwoPence/bin/game.Game1358098622995.html
+Loading: file:/C:/Users/BenLaptop/newworkspace/TwoPence/src/res/images/title.png
+Loading: file:/C:/Users/BenLaptop/newworkspace/TwoPence/src/res/images/logo.png
+Loading: file:/C:/Users/BenLaptop/newworkspace/TwoPence/src/res/images/coins/mayan0.png
+Loading: file:/C:/Users/BenLaptop/newworkspace/TwoPence/src/res/images/mayan/block.png
+Loading: file:/C:/Users/BenLaptop/newworkspace/TwoPence/src/res/images/checkbox_unchecked.png
+Loading: file:/C:/Users/BenLaptop/newworkspace/TwoPence/src/res/images/checkbox_checked.png
+Loading: file://null
+Loading: file://null
+Loading: file://null
+Loading: file://null
